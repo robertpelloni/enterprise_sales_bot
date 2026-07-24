@@ -181,8 +181,7 @@ func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, er
 		JOIN contacts co ON co.company_id = c.id
 		WHERE d.current_state = $1
 		AND co.email IS NOT NULL AND co.email != ''
-		AND d.cadence_step = 0
-		ORDER BY d.updated_at ASC
+		ORDER BY d.cadence_step ASC, d.updated_at ASC
 	`
 	rows, err := db.Conn.QueryContext(ctx, query, state)
 	if err != nil {

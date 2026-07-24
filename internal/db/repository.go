@@ -175,7 +175,7 @@ func (db *DB) ListAllCompanies(ctx context.Context) ([]Company, error) {
 
 func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, error) {
 	query := `
-		SELECT DISTINCT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.created_at, d.updated_at
+		SELECT DISTINCT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.cadence_step, d.created_at, d.updated_at
 		FROM deals d
 		JOIN companies c ON d.company_id = c.id
 		JOIN contacts co ON co.company_id = c.id
@@ -201,6 +201,7 @@ func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, er
 			&pricing,
 			&requirements,
 			&dossier,
+			&deal.CadenceStep,
 			&deal.CreatedAt,
 			&deal.UpdatedAt,
 		); err != nil {

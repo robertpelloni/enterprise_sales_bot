@@ -175,11 +175,13 @@ func (db *DB) ListAllCompanies(ctx context.Context) ([]Company, error) {
 
 func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, error) {
 	query := `
-		SELECT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.cadence_step, d.created_at, d.updated_at
+		SELECT DISTINCT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.created_at, d.updated_at
 		FROM deals d
+		JOIN companies c ON d.company_id = c.id
+		JOIN contacts co ON co.company_id = c.id
 		WHERE d.current_state = $1
-		AND EXISTS (SELECT 1 FROM contacts co WHERE co.company_id = d.company_id AND co.email IS NOT NULL AND co.email != '')
-		ORDER BY d.cadence_step ASC, d.updated_at ASC
+		AND co.email IS NOT NULL AND co.email != ''
+		ORDER BY d.updated_at DESC
 	`
 	rows, err := db.Conn.QueryContext(ctx, query, state)
 	if err != nil {
@@ -199,7 +201,6 @@ func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, er
 			&pricing,
 			&requirements,
 			&dossier,
-			&deal.CadenceStep,
 			&deal.CreatedAt,
 			&deal.UpdatedAt,
 		); err != nil {

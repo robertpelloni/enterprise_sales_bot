@@ -68,6 +68,7 @@ type BillingClient interface {
 	CreateInvoice(ctx context.Context, deal db.Deal, company db.Company) (string, error)
 	GetInvoiceStatus(ctx context.Context, invoiceID string) (InvoiceStatus, error)
 	CreateCheckoutSession(ctx context.Context, companyID int64, tier Tier, successURL, cancelURL string, seats int) (string, error)
+	CreateCheckoutSessionWithPrice(ctx context.Context, companyID int64, tier Tier, successURL, cancelURL string, seats int, priceAmount int64, interval string) (string, error)
 	GetSubscription(ctx context.Context, subID string) (*SubscriptionInfo, error)
 	CancelSubscription(ctx context.Context, subID string, atPeriodEnd bool) error
 	UpdateSubscriptionSeats(ctx context.Context, subID string, seats int) error
@@ -222,6 +223,80 @@ func (s *StripeBillingClient) CreateCheckoutSession(ctx context.Context, company
 // getPrice fetches a Stripe price object to check if it's recurring or one-time.
 func getPrice(_ context.Context, priceID string) (*stripe.Price, error) {
 	return price.Get(priceID, nil)
+}
+
+// CreateCheckoutSessionWithPrice creates a checkout session with a custom price amount.
+func (s *StripeBillingClient) CreateCheckoutSessionWithPrice(ctx context.Context, companyID int64, tier Tier, successURL, cancelURL string, seats int, priceAmount int64, interval string) (string, error) {
+	s.stripe()
+
+	if seats <= 0 {
+		seats = 1
+	}
+	if seats > 100000 {
+		seats = 100000
+	}
+	if priceAmount <= 0 {
+		priceAmount = 500 // Default $5
+	}
+
+	// Create a price on-the-fly
+	priceParams := &stripe.PriceParams{
+		UnitAmount: stripe.Int64(priceAmount),
+		Currency:   stripe.String(string(stripe.CurrencyUSD)),
+		ProductData: &stripe.PriceProductDataParams{
+			Name: stripe.String(string(tier)),
+		},
+	}
+
+	if interval == "year" {
+		priceParams.Recurring = &stripe.PriceRecurringParams{
+			Interval: stripe.String(string(stripe.PriceRecurringIntervalYear)),
+		}
+	} else if interval == "month" {
+		priceParams.Recurring = &stripe.PriceRecurringParams{
+			Interval: stripe.String(string(stripe.PriceRecurringIntervalMonth)),
+		}
+	}
+
+	p, err := price.New(priceParams)
+	if err != nil {
+		return "", fmt.Errorf("failed to create price: %w", err)
+	}
+
+	mode := stripe.CheckoutSessionModePayment
+	if interval == "year" || interval == "month" {
+		mode = stripe.CheckoutSessionModeSubscription
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		Mode:       stripe.String(string(mode)),
+		SuccessURL: stripe.String(successURL),
+		CancelURL:  stripe.String(cancelURL),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price:    stripe.String(p.ID),
+				Quantity: stripe.Int64(int64(seats)),
+				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
+					Enabled: stripe.Bool(true),
+					Minimum: stripe.Int64(1),
+					Maximum: stripe.Int64(100000),
+				},
+			},
+		},
+		Metadata: map[string]string{
+			"company_id": fmt.Sprintf("%d", companyID),
+			"tier":       string(tier),
+			"seats":      fmt.Sprintf("%d", seats),
+			"price":      fmt.Sprintf("%d", priceAmount),
+			"interval":   interval,
+		},
+	}
+
+	sess, err := session.New(params)
+	if err != nil {
+		return "", fmt.Errorf("stripe checkout session creation failed: %w", err)
+	}
+	return sess.URL, nil
 }
 
 func (s *StripeBillingClient) GetSubscription(ctx context.Context, subID string) (*SubscriptionInfo, error) {
@@ -545,6 +620,10 @@ func (m *MockBillingClient) GetInvoiceStatus(ctx context.Context, invoiceID stri
 }
 
 func (m *MockBillingClient) CreateCheckoutSession(ctx context.Context, companyID int64, tier Tier, successURL, cancelURL string, seats int) (string, error) {
+	return "http://localhost:8087/checkout/success", nil
+}
+
+func (m *MockBillingClient) CreateCheckoutSessionWithPrice(ctx context.Context, companyID int64, tier Tier, successURL, cancelURL string, seats int, priceAmount int64, interval string) (string, error) {
 	return "http://localhost:8087/checkout/success", nil
 }
 

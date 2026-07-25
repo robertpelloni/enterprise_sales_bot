@@ -1957,12 +1957,12 @@ function togglePricing(){
   if(c){
     m.style.color="#64748b";a.style.color="#0284c7";
     document.querySelectorAll(".price-amount").forEach(function(p){
-      p.innerHTML=p.innerHTML.replace("$5","$5").replace("/ seat / mo","/ seat / mo")
+      p.innerHTML=p.innerHTML.replace("$5","$50").replace("/ seat / mo","/ seat / yr")
     })
   }else{
     m.style.color="#0284c7";a.style.color="#64748b";
     document.querySelectorAll(".price-amount").forEach(function(p){
-      p.innerHTML=p.innerHTML.replace("$5","$5").replace("/ seat / yr","/ seat / mo")
+      p.innerHTML=p.innerHTML.replace("$50","$5").replace("/ seat / yr","/ seat / mo")
     })
   }
 }

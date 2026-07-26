@@ -1651,9 +1651,9 @@
                     <div class="price-tier">Professional License</div>
                     
                     <!-- Monthly/Yearly Tabs -->
-                    <div style="display:flex;justify-content:center;gap:0;margin:0 auto 20px;position:relative;z-index:1">
-                      <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:10px 24px;border:2px solid rgba(255,255,255,0.2);border-right:none;border-radius:8px 0 0 8px;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#0284c7,#0369a1);color:white;transition:all 0.3s;letter-spacing:0.5px;text-shadow:0 1px 2px rgba(0,0,0,0.3)">Monthly</button>
-                      <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:10px 24px;border:2px solid rgba(255,255,255,0.2);border-left:none;border-radius:0 8px 8px 0;font-size:13px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.1);color:#94a3b8;transition:all 0.3s;letter-spacing:0.5px;backdrop-filter:blur(4px)">Yearly <span style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;margin-left:4px">SAVE 17%</span></button>
+                    <div style="display:flex;justify-content:center;gap:0;margin:0 auto 16px;position:relative;z-index:1">
+                      <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:6px 16px;border:1px solid hsl(var(--accent-hue),80%,40%);border-right:none;border-radius:6px 0 0 6px;font-size:12px;font-weight:600;cursor:pointer;background:hsl(var(--accent-hue),80%,40%);color:white;transition:all 0.3s">Monthly</button>
+                      <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:6px 16px;border:1px solid hsl(var(--accent-hue),80%,40%);border-left:none;border-radius:0 6px 6px 0;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:hsl(var(--accent-hue),80%,40%);transition:all 0.3s">Yearly</button>
                     </div>
                     <div style="text-decoration:line-through;color:#94a3b8;font-size:20px;font-weight:500;letter-spacing:-0.5px;margin-bottom:2px" id="price-crossed">$10/seat/mo</div>
                     <div class="price-amount" id="price-display">$5 <span class="period" id="price-period">/ seat / mo</span></div>
@@ -1874,8 +1874,9 @@ function switchPlan(plan){
   // Update labels
   var tabM = document.getElementById('tab-monthly');
   var tabY = document.getElementById('tab-yearly');
-  if(tabM){tabM.style.background = isYearly ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#0284c7,#0369a1)'; tabM.style.color = isYearly ? '#94a3b8' : 'white';}
-  if(tabY){tabY.style.background = isYearly ? 'linear-gradient(135deg,#0284c7,#0369a1)' : 'rgba(255,255,255,0.1)'; tabY.style.color = isYearly ? 'white' : '#94a3b8';}
+  var accentColor = 'hsl(' + getComputedStyle(document.documentElement).getPropertyValue('--accent-hue').trim() + ', 80%, 40%)';
+  if(tabM){tabM.style.background = isYearly ? 'transparent' : accentColor; tabM.style.color = isYearly ? accentColor : 'white'; tabM.style.borderColor = accentColor;}
+  if(tabY){tabY.style.background = isYearly ? accentColor : 'transparent'; tabY.style.color = isYearly ? 'white' : accentColor; tabY.style.borderColor = accentColor;}
   
   // Update price display
   var priceDisplay = document.getElementById('price-display');

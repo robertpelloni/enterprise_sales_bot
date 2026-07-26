@@ -462,7 +462,17 @@
             >View Pricing</a
           >
           <span style="margin: 0 8px; color: #cbd5e1">·</span>
-          <a
+          <!-- Monthly/Yearly Toggle -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
+              <span id="monthly-label" style="font-size:12px;font-weight:600;color:#0284c7">Monthly</span>
+              <label style="position:relative;display:inline-block;width:40px;height:20px">
+                <input type="checkbox" id="pricing-toggle" onchange="togglePricing()" style="opacity:0;width:0;height:0">
+                <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:20px;transition:0.3s"></span>
+                <span style="position:absolute;content:'';height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s"></span>
+              </label>
+              <span id="annual-label" style="font-size:12px;font-weight:600;color:#64748b">Yearly <span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:10px">Save 17%</span></span>
+            </div>
+            <a
             href="#"
             id="get-started-btn"
             class="btn-rainbow"
@@ -474,7 +484,7 @@
               text-decoration: none;
               border-radius: 6px;
             "
-            >Get Started — $50/yr →</a
+            >Get Started — <span id="price-label">$5/mo</span> →</a
           >
         </div>
       </div>
@@ -558,6 +568,8 @@
             body: JSON.stringify({
               tier: "HYPERNEXUS_PROFESSIONAL_LICENSE",
               seats: 1,
+              price_amount: window.__price_amount || 500,
+              interval: window.__pricing_plan === 'yearly' ? 'year' : 'month',
               success_url: "https://hypernexus.site/success.html",
               cancel_url: "https://cloud.hypernexus.site/",
             }),
@@ -574,6 +586,39 @@
             });
         });
 
+      // Monthly/Yearly pricing toggle
+      var __pricing_plan = localStorage.getItem('pricing_plan') || 'monthly';
+      window.__pricing_plan = __pricing_plan;
+      window.__price_amount = __pricing_plan === 'yearly' ? 5000 : 500;
+      
+      function togglePricing() {
+        var toggle = document.getElementById('pricing-toggle');
+        var plan = toggle.checked ? 'yearly' : 'monthly';
+        window.__pricing_plan = plan;
+        window.__price_amount = plan === 'yearly' ? 5000 : 500;
+        localStorage.setItem('pricing_plan', plan);
+        
+        var priceLabel = document.getElementById('price-label');
+        if (priceLabel) priceLabel.textContent = plan === 'yearly' ? '$50/yr' : '$5/mo';
+        
+        var monthlyLabel = document.getElementById('monthly-label');
+        var annualLabel = document.getElementById('annual-label');
+        if (monthlyLabel) monthlyLabel.style.color = plan === 'monthly' ? '#0284c7' : '#64748b';
+        if (annualLabel) annualLabel.style.color = plan === 'yearly' ? '#0284c7' : '#64748b';
+      }
+      
+      // Set initial state
+      if (__pricing_plan === 'yearly') {
+        var toggle = document.getElementById('pricing-toggle');
+        if (toggle) toggle.checked = true;
+        var priceLabel = document.getElementById('price-label');
+        if (priceLabel) priceLabel.textContent = '$50/yr';
+        var monthlyLabel = document.getElementById('monthly-label');
+        var annualLabel = document.getElementById('annual-label');
+        if (monthlyLabel) monthlyLabel.style.color = '#64748b';
+        if (annualLabel) annualLabel.style.color = '#0284c7';
+      }
+      
       var savedUrl = localStorage.getItem("hypernexus_local_url");
       if (savedUrl) document.getElementById("local-url").value = savedUrl;
     </script>

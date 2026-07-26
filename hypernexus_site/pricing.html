@@ -390,9 +390,19 @@
     <div class="pricing-container">
       <div class="card">
         <div class="price">
-          <div class="price-amount"><span class="dollar">$</span>50</div>
-          <div class="price-period">per seat / year</div>
-          <div class="price-note">That's $4.17/month. Less than a coffee.</div>
+          <!-- Monthly/Yearly Toggle -->
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">
+            <span id="monthly-label" style="font-size:14px;font-weight:600;color:#0284c7">Monthly</span>
+            <label style="position:relative;display:inline-block;width:48px;height:24px">
+              <input type="checkbox" id="pricing-toggle" onchange="togglePricing()" style="opacity:0;width:0;height:0">
+              <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:0.3s"></span>
+              <span style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s"></span>
+            </label>
+            <span id="annual-label" style="font-size:14px;font-weight:600;color:#64748b">Yearly <span style="background:#10b981;color:white;padding:2px 6px;border-radius:4px;font-size:11px">Save 17%</span></span>
+          </div>
+          <div class="price-amount" id="price-display"><span class="dollar">$</span><span id="price-value">5</span></div>
+          <div class="price-period" id="price-period">per seat / month</div>
+          <div class="price-note" id="price-note">Less than a coffee per month. Cancel anytime.</div>
         </div>
 
         <div class="section-title">What's Included</div>
@@ -430,6 +440,8 @@
               body: JSON.stringify({
                 tier: "HYPERNEXUS_PROFESSIONAL_LICENSE",
                 seats: 1,
+                price_amount: window.__price_amount || 500,
+                interval: window.__pricing_plan === 'yearly' ? 'year' : 'month',
                 success_url: "https://hypernexus.site/success.html",
                 cancel_url: "https://hypernexus.site/pricing.html",
               }),
@@ -508,7 +520,7 @@
         </tr>
         <tr>
           <td>Price</td>
-          <td class="check">$50/year</td>
+          <td class="check"><span id="comparison-price">$5/mo</span></td>
           <td>$240/year</td>
           <td>$120/year</td>
         </tr>
@@ -524,5 +536,49 @@
         >
       </p>
     </footer>
+    
+    <script>
+      // Monthly/Yearly pricing toggle
+      var __pricing_plan = localStorage.getItem('pricing_plan') || 'monthly';
+      window.__pricing_plan = __pricing_plan;
+      window.__price_amount = __pricing_plan === 'yearly' ? 5000 : 500;
+      
+      function togglePricing() {
+        var toggle = document.getElementById('pricing-toggle');
+        var plan = toggle.checked ? 'yearly' : 'monthly';
+        window.__pricing_plan = plan;
+        window.__price_amount = plan === 'yearly' ? 5000 : 500;
+        localStorage.setItem('pricing_plan', plan);
+        
+        var priceValue = document.getElementById('price-value');
+        var pricePeriod = document.getElementById('price-period');
+        var priceNote = document.getElementById('price-note');
+        
+        if (priceValue) priceValue.textContent = plan === 'yearly' ? '50' : '5';
+        if (pricePeriod) pricePeriod.textContent = plan === 'yearly' ? 'per seat / year' : 'per seat / month';
+        if (priceNote) priceNote.textContent = plan === 'yearly' ? "That's $4.17/month. Save 17% vs monthly." : 'Less than a coffee per month. Cancel anytime.';
+        
+        var monthlyLabel = document.getElementById('monthly-label');
+        var annualLabel = document.getElementById('annual-label');
+        if (monthlyLabel) monthlyLabel.style.color = plan === 'monthly' ? '#0284c7' : '#64748b';
+        if (annualLabel) annualLabel.style.color = plan === 'yearly' ? '#0284c7' : '#64748b';
+      }
+      
+      // Set initial state
+      if (__pricing_plan === 'yearly') {
+        var toggle = document.getElementById('pricing-toggle');
+        if (toggle) toggle.checked = true;
+        var priceValue = document.getElementById('price-value');
+        var pricePeriod = document.getElementById('price-period');
+        var priceNote = document.getElementById('price-note');
+        if (priceValue) priceValue.textContent = '50';
+        if (pricePeriod) pricePeriod.textContent = 'per seat / year';
+        if (priceNote) priceNote.textContent = "That's $4.17/month. Save 17% vs monthly.";
+        var monthlyLabel = document.getElementById('monthly-label');
+        var annualLabel = document.getElementById('annual-label');
+        if (monthlyLabel) monthlyLabel.style.color = '#64748b';
+        if (annualLabel) annualLabel.style.color = '#0284c7';
+      }
+    </script>
   </body>
 </html>

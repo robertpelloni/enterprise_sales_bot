@@ -604,14 +604,7 @@
       
       // Set initial state
       if (__pricing_plan === 'yearly') {
-        var isYearly = plan === 'yearly';
-        if (toggle) toggle.checked = true;
-        var priceLabel = document.getElementById('price-label');
-        if (priceLabel) priceLabel.textContent = '$50/yr';
-        var tabM = document.getElementById('tab-monthly');
-        var tabY = document.getElementById('tab-yearly');
-        if (monthlyLabel) monthlyLabel.style.color = '#64748b';
-        if (annualLabel) annualLabel.style.color = '#0284c7';
+        switchPlan('yearly');
       }
       
       var savedUrl = localStorage.getItem("hypernexus_local_url");

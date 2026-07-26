@@ -462,15 +462,10 @@
             >View Pricing</a
           >
           <span style="margin: 0 8px; color: #cbd5e1">·</span>
-          <!-- Monthly/Yearly Toggle -->
-            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
-              <span id="monthly-label" style="font-size:12px;font-weight:600;color:#0284c7">Monthly</span>
-              <label style="position:relative;display:inline-block;width:40px;height:20px">
-                <input type="checkbox" id="pricing-toggle" onchange="togglePricing()" style="opacity:0;width:0;height:0">
-                <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:20px;transition:0.3s"></span>
-                <span style="position:absolute;content:'';height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s"></span>
-              </label>
-              <span id="annual-label" style="font-size:12px;font-weight:600;color:#64748b">Yearly <span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:10px">Save 17%</span></span>
+          <!-- Monthly/Yearly Tabs -->
+            <div style="display:flex;justify-content:center;gap:0;margin-bottom:10px;background:#f1f5f9;border-radius:6px;padding:2px;width:fit-content;margin-left:auto;margin-right:auto">
+              <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:6px 14px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:#0284c7;color:white;transition:all 0.2s">Monthly</button>
+              <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:6px 14px;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;background:transparent;color:#64748b;transition:all 0.2s">Yearly <span style="background:#10b981;color:white;padding:1px 3px;border-radius:2px;font-size:9px">Save 17%</span></button>
             </div>
             <a
             href="#"
@@ -591,9 +586,9 @@
       window.__pricing_plan = __pricing_plan;
       window.__price_amount = __pricing_plan === 'yearly' ? 5000 : 500;
       
-      function togglePricing() {
-        var toggle = document.getElementById('pricing-toggle');
-        var plan = toggle.checked ? 'yearly' : 'monthly';
+      function switchPlan(plan) {
+        var isYearly = plan === 'yearly';
+        
         window.__pricing_plan = plan;
         window.__price_amount = plan === 'yearly' ? 5000 : 500;
         localStorage.setItem('pricing_plan', plan);
@@ -601,20 +596,20 @@
         var priceLabel = document.getElementById('price-label');
         if (priceLabel) priceLabel.textContent = plan === 'yearly' ? '$50/yr' : '$5/mo';
         
-        var monthlyLabel = document.getElementById('monthly-label');
-        var annualLabel = document.getElementById('annual-label');
-        if (monthlyLabel) monthlyLabel.style.color = plan === 'monthly' ? '#0284c7' : '#64748b';
-        if (annualLabel) annualLabel.style.color = plan === 'yearly' ? '#0284c7' : '#64748b';
+        var tabM = document.getElementById('tab-monthly');
+        var tabY = document.getElementById('tab-yearly');
+        if(tabM){tabM.style.background = isYearly ? 'transparent' : '#0284c7'; tabM.style.color = isYearly ? '#64748b' : 'white';}
+        if(tabY){tabY.style.background = isYearly ? '#0284c7' : 'transparent'; tabY.style.color = isYearly ? 'white' : '#64748b';}
       }
       
       // Set initial state
       if (__pricing_plan === 'yearly') {
-        var toggle = document.getElementById('pricing-toggle');
+        var isYearly = plan === 'yearly';
         if (toggle) toggle.checked = true;
         var priceLabel = document.getElementById('price-label');
         if (priceLabel) priceLabel.textContent = '$50/yr';
-        var monthlyLabel = document.getElementById('monthly-label');
-        var annualLabel = document.getElementById('annual-label');
+        var tabM = document.getElementById('tab-monthly');
+        var tabY = document.getElementById('tab-yearly');
         if (monthlyLabel) monthlyLabel.style.color = '#64748b';
         if (annualLabel) annualLabel.style.color = '#0284c7';
       }

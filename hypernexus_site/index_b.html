@@ -1650,17 +1650,11 @@
                     <div class="rainbow-spinner" style="padding:56px 18px">
                     <div class="price-tier">Professional License</div>
                     
-                    <!-- Monthly/Yearly Toggle -->
-                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">
-                      <span id="monthly-label" style="font-size:14px;font-weight:600;color:#0284c7">Monthly</span>
-                      <label style="position:relative;display:inline-block;width:48px;height:24px">
-                        <input type="checkbox" id="pricing-toggle" onchange="togglePricing()" style="opacity:0;width:0;height:0">
-                        <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:0.3s"></span>
-                        <span style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s"></span>
-                      </label>
-                      <span id="annual-label" style="font-size:14px;font-weight:600;color:#64748b">Yearly <span style="background:#10b981;color:white;padding:2px 6px;border-radius:4px;font-size:11px">Save 17%</span></span>
+                    <!-- Monthly/Yearly Tabs -->
+                    <div style="display:flex;justify-content:center;gap:0;margin-bottom:16px;background:#f1f5f9;border-radius:8px;padding:3px;width:fit-content;margin-left:auto;margin-right:auto">
+                      <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:8px 20px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:#0284c7;color:white;transition:all 0.2s">Monthly</button>
+                      <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748b;transition:all 0.2s">Yearly <span style="background:#10b981;color:white;padding:1px 5px;border-radius:3px;font-size:10px">Save 17%</span></button>
                     </div>
-                    
                     <div style="text-decoration:line-through;color:#94a3b8;font-size:20px;font-weight:500;letter-spacing:-0.5px;margin-bottom:2px" id="price-crossed">$10/seat/mo</div>
                     <div class="price-amount" id="price-display">$5 <span class="period" id="price-period">/ seat / mo</span></div>
                     <div id="price-note" style="font-size:13px;color:#475569;margin-top:8px;line-height:1.5">Less than a coffee per month. Cancel anytime.</div>
@@ -1871,20 +1865,17 @@
 
 <script>
 // Toggle pricing monthly/annual
-function togglePricing(){
-  var c=document.getElementById("pricing-toggle").checked;
-  var m=document.getElementById("monthly-label");
-  var a=document.getElementById("annual-label");
-  var plan = c ? 'yearly' : 'monthly';
-  
-  // Update global state
+function switchPlan(plan){
+  var isYearly = plan === 'yearly';
   window.__pricing_plan = plan;
-  window.__price_amount = c ? 5000 : 500;
+  window.__price_amount = isYearly ? 5000 : 500;
   localStorage.setItem('pricing_plan', plan);
   
   // Update labels
-  if(m) m.style.color = c ? "#64748b" : "#0284c7";
-  if(a) a.style.color = c ? "#0284c7" : "#64748b";
+  var tabM = document.getElementById('tab-monthly');
+  var tabY = document.getElementById('tab-yearly');
+  if(tabM){tabM.style.background = isYearly ? 'transparent' : '#0284c7'; tabM.style.color = isYearly ? '#64748b' : 'white';}
+  if(tabY){tabY.style.background = isYearly ? '#0284c7' : 'transparent'; tabY.style.color = isYearly ? 'white' : '#64748b';}
   
   // Update price display
   var priceDisplay = document.getElementById('price-display');

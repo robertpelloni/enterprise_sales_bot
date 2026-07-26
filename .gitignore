@@ -1,9 +1,125 @@
-# .gitignore
-*.exe
-.env
-.memory/
-bin/
-coverage.out
-*.test
+# .gitignore — Marketing Agent / TormentNexus
 
-marketing_agent*
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+build/
+marketing_agent
+marketing_agent_linux
+sales_bot
+sales_bot.exe
+tormentnexus-mcp-server
+cdp_poster
+cdp_poster.exe
+cdp_poster.exe~
+cdp_poster.log
+
+# Go
+*.test
+coverage.out
+vendor/
+
+# Node
+node_modules/
+.pnpm-store/
+.next/
+.turbo/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# CSV exports (temporary data)
+*.csv
+!data/**/*.csv
+
+# Temporary scripts (check_db*, fix_*.sh)
+check_db*.sh
+fix_*.sh
+
+# JSON data files (not configs)
+apollo_prospects.json
+tormentnexus_prospects.json
+sent_emails.json
+email_send_log.csv
+
+# AI tool configs (don't need in repo)
+.agent/
+.aider/
+.antigravity/
+.claude/
+.claude-desktop/
+.cline/
+.codewhale/
+.codex/
+.copilot/
+.cursor/
+.editor-configs/
+.gemini/
+.geminiignore
+.github/
+.gitmodules
+.goose/
+.grok/
+.hermes/
+.jules/
+.kilo/
+.kimi-code/
+.mavis/
+.memory/
+.opencode/
+openhands/
+.pi/
+.roo/
+.ruff_cache/
+.verdent/
+.vscode/
+.zcode/
+..go_backup_old
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+nul
+
+# Logs
+*.log
+logs/
+
+# Temp
+tmp/
+temp/
+.tmp/
+
+# Docker
+.dockerignore
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
+
+# Lock files (keep go.sum, pnpm-lock.yaml)
+package-lock.json
+yarn.lock

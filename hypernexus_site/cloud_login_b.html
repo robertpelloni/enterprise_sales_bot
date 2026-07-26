@@ -417,7 +417,10 @@
           <a
             href="#"
             class="btn btn-secondary"
-            onclick="event.preventDefault(); return false;"
+            onclick="
+              event.preventDefault();
+              return false;
+            "
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path
@@ -670,7 +673,12 @@
 
         var tabM = document.getElementById("tab-monthly");
         var tabY = document.getElementById("tab-yearly");
-        var accent = 'hsl(' + getComputedStyle(document.documentElement).getPropertyValue('--accent-hue').trim() + ', 80%, 60%)';
+        var accent =
+          "hsl(" +
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--accent-hue")
+            .trim() +
+          ", 80%, 60%)";
         if (tabM) {
           tabM.style.background = isYearly ? "transparent" : accent;
           tabM.style.color = isYearly ? accent : "#0f172a";

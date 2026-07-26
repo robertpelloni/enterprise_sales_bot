@@ -392,8 +392,8 @@
         <div class="price">
           <!-- Monthly/Yearly Tabs -->
           <div style="display:flex;justify-content:center;gap:0;margin:0 auto 20px">
-            <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:8px 20px;border:1px solid #0284c7;border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:600;cursor:pointer;background:#0284c7;color:white;transition:all 0.3s">Monthly</button>
-            <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:1px solid #0284c7;border-left:none;border-radius:0 6px 6px 0;font-size:13px;font-weight:600;cursor:pointer;background:white;color:#0284c7;transition:all 0.3s">Yearly</button>
+            <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:600;cursor:pointer;background:hsl(var(--accent-hue),80%,60%);color:white;transition:all 0.3s">Monthly</button>
+            <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-left:none;border-radius:0 6px 6px 0;font-size:13px;font-weight:600;cursor:pointer;background:white;color:hsl(var(--accent-hue),80%,60%);transition:all 0.3s">Yearly</button>
           </div>
         <div class="price-amount" id="price-display">
             <span class="dollar">$</span><span id="price-value">5</span>
@@ -562,12 +562,11 @@
               ? "That's $4.17/month. Save 17% vs monthly."
               : "Less than a coffee per month. Cancel anytime.";
 
-        var monthlyLabel = document.getElementById("monthly-label");
-        var annualLabel = document.getElementById("annual-label");
-        if (monthlyLabel)
-          monthlyLabel.style.color = plan === "monthly" ? "#0284c7" : "#64748b";
-        if (annualLabel)
-          annualLabel.style.color = plan === "yearly" ? "#0284c7" : "#64748b";
+        var tabM = document.getElementById('tab-monthly');
+        var tabY = document.getElementById('tab-yearly');
+        var accent = 'hsl(' + getComputedStyle(document.documentElement).getPropertyValue('--accent-hue').trim() + ', 80%, 60%)';
+        if(tabM){tabM.style.background = isYearly ? 'white' : accent; tabM.style.color = isYearly ? accent : 'white'; tabM.style.borderColor = accent;}
+        if(tabY){tabY.style.background = isYearly ? accent : 'white'; tabY.style.color = isYearly ? 'white' : accent; tabY.style.borderColor = accent;}
       }
 
       // Set initial state

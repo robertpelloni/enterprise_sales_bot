@@ -1649,9 +1649,21 @@
                     <div class="rainbow-border" style="position:absolute;inset:-12px;background:linear-gradient(90deg, #ff3b30, #ff9500, #ffcc00, #4cd964, #5ac8fa, #007aff, #5856d6, #ff3b30);background-size:800% 100%;animation:rainbowBtnSlow 3s linear infinite;border-radius:24px;pointer-events:none;z-index:0"></div>
                     <div class="rainbow-spinner" style="padding:56px 18px">
                     <div class="price-tier">Professional License</div>
-                    <div style="text-decoration:line-through;color:#94a3b8;font-size:20px;font-weight:500;letter-spacing:-0.5px;margin-bottom:2px">$100/seat/year</div>
-                    <div class="price-amount">$50 <span class="period">/ seat / year</span></div>
-                    <div style="font-size:13px;color:#475569;margin-top:8px;line-height:1.5">Local license + cloud hosting included. Self-host or use our managed infrastructure.</div>
+                    
+                    <!-- Monthly/Yearly Toggle -->
+                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">
+                      <span id="monthly-label" style="font-size:14px;font-weight:600;color:#0284c7">Monthly</span>
+                      <label style="position:relative;display:inline-block;width:48px;height:24px">
+                        <input type="checkbox" id="pricing-toggle" onchange="togglePricing()" style="opacity:0;width:0;height:0">
+                        <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:0.3s"></span>
+                        <span style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s"></span>
+                      </label>
+                      <span id="annual-label" style="font-size:14px;font-weight:600;color:#64748b">Yearly <span style="background:#10b981;color:white;padding:2px 6px;border-radius:4px;font-size:11px">Save 17%</span></span>
+                    </div>
+                    
+                    <div style="text-decoration:line-through;color:#94a3b8;font-size:20px;font-weight:500;letter-spacing:-0.5px;margin-bottom:2px" id="price-crossed">$10/seat/mo</div>
+                    <div class="price-amount" id="price-display">$5 <span class="period" id="price-period">/ seat / mo</span></div>
+                    <div id="price-note" style="font-size:13px;color:#475569;margin-top:8px;line-height:1.5">Less than a coffee per month. Cancel anytime.</div>
                     
 
                     
@@ -1863,17 +1875,29 @@ function togglePricing(){
   var c=document.getElementById("pricing-toggle").checked;
   var m=document.getElementById("monthly-label");
   var a=document.getElementById("annual-label");
-  if(c){
-    m.style.color="#64748b";a.style.color="#0284c7";
-    document.querySelectorAll(".price-amount").forEach(function(p){
-      p.innerHTML=p.innerHTML.replace("$5","$50").replace("/ seat / mo","/ seat / yr")
-    })
-  }else{
-    m.style.color="#0284c7";a.style.color="#64748b";
-    document.querySelectorAll(".price-amount").forEach(function(p){
-      p.innerHTML=p.innerHTML.replace("$50","$5").replace("/ seat / yr","/ seat / mo")
-    })
-  }
+  var plan = c ? 'yearly' : 'monthly';
+  
+  // Update global state
+  window.__pricing_plan = plan;
+  window.__price_amount = c ? 5000 : 500;
+  localStorage.setItem('pricing_plan', plan);
+  
+  // Update labels
+  if(m) m.style.color = c ? "#64748b" : "#0284c7";
+  if(a) a.style.color = c ? "#0284c7" : "#64748b";
+  
+  // Update price display
+  var priceDisplay = document.getElementById('price-display');
+  var priceCrossed = document.getElementById('price-crossed');
+  var pricePeriod = document.getElementById('price-period');
+  var priceNote = document.getElementById('price-note');
+  
+  if(priceDisplay) priceDisplay.innerHTML = c ? '$50 <span class="period" id="price-period">/ seat / yr</span>' : '$5 <span class="period" id="price-period">/ seat / mo</span>';
+  if(priceCrossed) priceCrossed.textContent = c ? '$100/seat/yr' : '$10/seat/mo';
+  if(priceNote) priceNote.textContent = c ? "That's $4.17/month. Save 17% vs monthly." : 'Less than a coffee per month. Cancel anytime.';
+  
+  // Track in Plausible
+  if(typeof plausible !== 'undefined') plausible('Pricing Toggle', {props: {plan: plan}});
 }
 
 // 3D tilt on ALL cards with zoom

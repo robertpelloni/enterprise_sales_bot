@@ -417,7 +417,7 @@
           <a
             href="#"
             class="btn btn-secondary"
-            onclick="handleOAuthLogin('google')"
+            onclick="event.preventDefault(); return false;"
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path
@@ -440,7 +440,7 @@
             Continue with Google
           </a>
           <div class="footer-text" style="margin-top: 20px">
-            <a href="#">Forgot password?</a> · <a href="#">Create account</a>
+            <a href="#">Forgot password?</a>
           </div>
         </div>
 

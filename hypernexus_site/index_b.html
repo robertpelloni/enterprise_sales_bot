@@ -1883,9 +1883,9 @@ function switchPlan(plan){
   var priceCrossed = document.getElementById('price-crossed');
   var priceNote = document.getElementById('price-note');
   
-  if(priceDisplay) priceDisplay.innerHTML = c ? '$50 <span class="period" id="price-period">/ seat / yr</span>' : '$5 <span class="period" id="price-period">/ seat / mo</span>';
-  if(priceCrossed) priceCrossed.textContent = c ? '$100/seat/yr' : '$10/seat/mo';
-  if(priceNote) priceNote.textContent = c ? "That's $4.17/month. Save 17% vs monthly." : 'Less than a coffee per month. Cancel anytime.';
+  if(priceDisplay) priceDisplay.innerHTML = isYearly ? '$50 <span class="period" id="price-period">/ seat / yr</span>' : '$5 <span class="period" id="price-period">/ seat / mo</span>';
+  if(priceCrossed) priceCrossed.textContent = isYearly ? '$100/seat/yr' : '$10/seat/mo';
+  if(priceNote) priceNote.textContent = isYearly ? "That's $4.17/month. Save 17% vs monthly." : 'Less than a coffee per month. Cancel anytime.';
   
   // Track in Plausible
   if(typeof plausible !== 'undefined') plausible('Pricing Toggle', {props: {plan: plan}});

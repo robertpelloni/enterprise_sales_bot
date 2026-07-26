@@ -594,7 +594,7 @@
         localStorage.setItem('pricing_plan', plan);
         
         var priceLabel = document.getElementById('price-label');
-        if (priceLabel) priceLabel.textContent = plan === 'yearly' ? '$50/yr' : '$5/mo';
+        if (priceLabel) priceLabel.textContent = isYearly ? '$50/yr' : '$5/mo';
         
         var tabM = document.getElementById('tab-monthly');
         var tabY = document.getElementById('tab-yearly');

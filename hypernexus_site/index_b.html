@@ -141,11 +141,17 @@
         initial-value: 200;
       }
 
+      @property --tab-hue {
+        syntax: '<number>';
+        inherits: true;
+        initial-value: 200;
+      }
+
       :root {
         --accent: hsl(var(--accent-hue), 80%, 40%);
         --accent-light: hsl(var(--accent-hue), 80%, 95%);
         --accent-glow: hsla(var(--accent-hue), 80%, 40%, 0.3);
-        animation: hueShift 7s linear infinite;
+        animation: hueShift 7s linear infinite, tabHueShift 3.5s linear infinite;
       }
 
       @keyframes hueShift {
@@ -157,6 +163,17 @@
         71% { --accent-hue: 255; } /* Blue */
         85% { --accent-hue: 306; } /* Purple */
         100% { --accent-hue: 360; } /* Red */
+      }
+
+      @keyframes tabHueShift {
+        0% { --tab-hue: 0; }
+        14% { --tab-hue: 51; }
+        28% { --tab-hue: 102; }
+        42% { --tab-hue: 153; }
+        57% { --tab-hue: 204; }
+        71% { --tab-hue: 255; }
+        85% { --tab-hue: 306; }
+        100% { --tab-hue: 360; }
       }
 
       /* Disable all neon wire animations and background gradient shifts */
@@ -1652,8 +1669,8 @@
                     
                     <!-- Monthly/Yearly Tabs -->
                     <div style="display:flex;justify-content:center;gap:0;margin:0 auto 16px;position:relative;z-index:1">
-                      <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:6px 16px;border:1px solid hsl(var(--accent-hue),80%,40%);border-right:none;border-radius:6px 0 0 6px;font-size:12px;font-weight:600;cursor:pointer;background:hsl(var(--accent-hue),80%,40%);color:white;transition:all 0.3s">Monthly</button>
-                      <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:6px 16px;border:1px solid hsl(var(--accent-hue),80%,40%);border-left:none;border-radius:0 6px 6px 0;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:hsl(var(--accent-hue),80%,40%);transition:all 0.3s">Yearly</button>
+                      <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:6px 16px;border:1px solid hsl(var(--tab-hue),80%,40%);border-right:none;border-radius:6px 0 0 6px;font-size:12px;font-weight:600;cursor:pointer;background:hsl(var(--tab-hue),80%,40%);color:white;transition:all 0.3s">Monthly</button>
+                      <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:6px 16px;border:1px solid hsl(var(--tab-hue),80%,40%);border-left:none;border-radius:0 6px 6px 0;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:hsl(var(--tab-hue),80%,40%);transition:all 0.3s">Yearly</button>
                     </div>
                     <div style="text-decoration:line-through;color:#94a3b8;font-size:20px;font-weight:500;letter-spacing:-0.5px;margin-bottom:2px" id="price-crossed">$10/seat/mo</div>
                     <div class="price-amount" id="price-display">$5 <span class="period" id="price-period">/ seat / mo</span></div>

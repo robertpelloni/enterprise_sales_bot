@@ -228,16 +228,16 @@ def scrape_apollo_purchasing(limit=100):
     
     headers = {
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache"
+        "Cache-Control": "no-cache",
+        "X-Api-Key": APOLLO_API_KEY
     }
     
     contacts = []
     
     # Search for purchasing roles at tech companies
-    for role_keyword in ["purchasing manager", "procurement manager", "software buyer", "it procurement"]:
+    for role_keyword in ["purchasing manager", "procurement manager", "software buyer", "it procurement", "vendor management", "sourcing manager"]:
         try:
             payload = {
-                "api_key": APOLLO_API_KEY,
                 "q_organization_keyword_tags": ["technology", "software", "saas", "ai"],
                 "title": role_keyword,
                 "person_seniorities": ["manager", "director", "vp", "head"],
@@ -246,7 +246,7 @@ def scrape_apollo_purchasing(limit=100):
             }
             
             resp = requests.post(
-                "https://api.apollo.io/v1/mixed_people/search",
+                "https://api.apollo.io/v1/mixed_people/api_search",
                 headers=headers,
                 json=payload,
                 timeout=30

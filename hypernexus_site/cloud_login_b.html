@@ -496,8 +496,28 @@
           >
           <span style="margin: 0 8px; color: #cbd5e1">·</span>
           <!-- Introductory Offer Badge -->
-          <div style="text-align:center;margin-bottom:10px">
-            <span style="display:inline-block;background:linear-gradient(90deg,hsl(var(--accent-hue), 80%, 50%),hsl(calc(var(--accent-hue) + 60), 80%, 50%),hsl(calc(var(--accent-hue) + 120), 80%, 50%));background-size:200% 100%;animation:rainbowBtnSlow 3s linear infinite;color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px">Introductory Offer — 50% Off</span>
+          <div style="text-align: center; margin-bottom: 10px">
+            <span
+              style="
+                display: inline-block;
+                background: linear-gradient(
+                  90deg,
+                  hsl(var(--accent-hue), 80%, 50%),
+                  hsl(calc(var(--accent-hue) + 60), 80%, 50%),
+                  hsl(calc(var(--accent-hue) + 120), 80%, 50%)
+                );
+                background-size: 200% 100%;
+                animation: rainbowBtnSlow 3s linear infinite;
+                color: white;
+                font-size: 10px;
+                font-weight: 700;
+                padding: 3px 10px;
+                border-radius: 20px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              "
+              >Introductory Offer — 50% Off</span
+            >
           </div>
           <!-- Monthly/Yearly Tabs -->
           <div
@@ -672,26 +692,33 @@
         localStorage.setItem("pricing_plan", plan);
 
         var priceLabel = document.getElementById("price-label");
-        if (priceLabel)
-          priceLabel.textContent = isYearly ? "$50/yr" : "$5/mo";
+        if (priceLabel) priceLabel.textContent = isYearly ? "$50/yr" : "$5/mo";
 
         // Update tab styles using CSS variables (not computed values)
         var tabM = document.getElementById("tab-monthly");
         var tabY = document.getElementById("tab-yearly");
         if (tabM) {
-          tabM.style.background = isYearly ? "transparent" : "hsl(var(--accent-hue), 80%, 60%)";
-          tabM.style.color = isYearly ? "hsl(var(--accent-hue), 80%, 60%)" : "#0f172a";
+          tabM.style.background = isYearly
+            ? "transparent"
+            : "hsl(var(--accent-hue), 80%, 60%)";
+          tabM.style.color = isYearly
+            ? "hsl(var(--accent-hue), 80%, 60%)"
+            : "#0f172a";
           tabM.style.borderColor = "hsl(var(--accent-hue), 80%, 60%)";
         }
         if (tabY) {
-          tabY.style.background = isYearly ? "hsl(var(--accent-hue), 80%, 60%)" : "transparent";
-          tabY.style.color = isYearly ? "#0f172a" : "hsl(var(--accent-hue), 80%, 60%)";
+          tabY.style.background = isYearly
+            ? "hsl(var(--accent-hue), 80%, 60%)"
+            : "transparent";
+          tabY.style.color = isYearly
+            ? "#0f172a"
+            : "hsl(var(--accent-hue), 80%, 60%)";
           tabY.style.borderColor = "hsl(var(--accent-hue), 80%, 60%)";
         }
       }
 
       // Set initial state on load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         var savedPlan = localStorage.getItem("pricing_plan") || "monthly";
         switchPlan(savedPlan);
       });

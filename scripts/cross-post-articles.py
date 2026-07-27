@@ -166,9 +166,9 @@ def main():
     medium_author = os.environ.get("MEDIUM_AUTHOR_ID", "")
 
     print("Platform Status:")
-    print(f"  dev.to: {'✅ API key found' if devto_key else '❌ No API key'}")
-    print(f"  Hashnode: {'✅ API key found' if hashnode_key else '❌ No API key'}")
-    print(f"  Medium: {'✅ API key found' if medium_key else '❌ No API key'}")
+    print(f"  dev.to: {'[OK] API key found' if devto_key else '[FAIL] No API key'}")
+    print(f"  Hashnode: {'[OK] API key found' if hashnode_key else '[FAIL] No API key'}")
+    print(f"  Medium: {'[OK] API key found' if medium_key else '[FAIL] No API key'}")
     print()
 
     print(f"Articles to cross-post: {len(NEW_ARTICLES)}")

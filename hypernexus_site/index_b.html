@@ -1888,12 +1888,19 @@ function switchPlan(plan){
   window.__price_amount = isYearly ? 5000 : 500;
   localStorage.setItem('pricing_plan', plan);
   
-  // Update labels
+  // Update tab styles using CSS variables (not computed values)
   var tabM = document.getElementById('tab-monthly');
   var tabY = document.getElementById('tab-yearly');
-  var accentColor = 'hsl(' + getComputedStyle(document.documentElement).getPropertyValue('--accent-hue').trim() + ', 80%, 40%)';
-  if(tabM){tabM.style.background = isYearly ? 'transparent' : accentColor; tabM.style.color = isYearly ? accentColor : 'white'; tabM.style.borderColor = accentColor;}
-  if(tabY){tabY.style.background = isYearly ? accentColor : 'transparent'; tabY.style.color = isYearly ? 'white' : accentColor; tabY.style.borderColor = accentColor;}
+  if(tabM){
+    tabM.style.background = isYearly ? 'transparent' : 'hsl(var(--tab-hue), 80%, 40%)';
+    tabM.style.color = isYearly ? 'hsl(var(--tab-hue), 80%, 40%)' : 'white';
+    tabM.style.borderColor = 'hsl(var(--tab-hue), 80%, 40%)';
+  }
+  if(tabY){
+    tabY.style.background = isYearly ? 'hsl(var(--tab-hue), 80%, 40%)' : 'transparent';
+    tabY.style.color = isYearly ? 'white' : 'hsl(var(--tab-hue), 80%, 40%)';
+    tabY.style.borderColor = 'hsl(var(--tab-hue), 80%, 40%)';
+  }
   
   // Update price display
   var priceDisplay = document.getElementById('price-display');

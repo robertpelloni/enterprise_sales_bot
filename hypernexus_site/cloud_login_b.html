@@ -664,40 +664,33 @@
         var isYearly = plan === "yearly";
 
         window.__pricing_plan = plan;
-        window.__price_amount = plan === "yearly" ? 5000 : 500;
+        window.__price_amount = isYearly ? 5000 : 500;
         localStorage.setItem("pricing_plan", plan);
 
         var priceLabel = document.getElementById("price-label");
         if (priceLabel)
-          priceLabel.textContent = plan === "yearly" ? "$50/yr" : "$5/mo";
+          priceLabel.textContent = isYearly ? "$50/yr" : "$5/mo";
 
+        // Update tab styles using CSS variables (not computed values)
         var tabM = document.getElementById("tab-monthly");
         var tabY = document.getElementById("tab-yearly");
-        var accent =
-          "hsl(" +
-          getComputedStyle(document.documentElement)
-            .getPropertyValue("--accent-hue")
-            .trim() +
-          ", 80%, 60%)";
         if (tabM) {
-          tabM.style.background = isYearly ? "transparent" : accent;
-          tabM.style.color = isYearly ? accent : "#0f172a";
-          tabM.style.borderColor = accent;
+          tabM.style.background = isYearly ? "transparent" : "hsl(var(--accent-hue), 80%, 60%)";
+          tabM.style.color = isYearly ? "hsl(var(--accent-hue), 80%, 60%)" : "#0f172a";
+          tabM.style.borderColor = "hsl(var(--accent-hue), 80%, 60%)";
         }
         if (tabY) {
-          tabY.style.background = isYearly ? accent : "transparent";
-          tabY.style.color = isYearly ? "#0f172a" : accent;
-          tabY.style.borderColor = accent;
+          tabY.style.background = isYearly ? "hsl(var(--accent-hue), 80%, 60%)" : "transparent";
+          tabY.style.color = isYearly ? "#0f172a" : "hsl(var(--accent-hue), 80%, 60%)";
+          tabY.style.borderColor = "hsl(var(--accent-hue), 80%, 60%)";
         }
       }
 
-      // Set initial state
-      if (__pricing_plan === "yearly") {
-        switchPlan("yearly");
-      }
-
-      var savedUrl = localStorage.getItem("hypernexus_local_url");
-      if (savedUrl) document.getElementById("local-url").value = savedUrl;
+      // Set initial state on load
+      document.addEventListener('DOMContentLoaded', function() {
+        var savedPlan = localStorage.getItem("pricing_plan") || "monthly";
+        switchPlan(savedPlan);
+      });
     </script>
   </body>
 </html>

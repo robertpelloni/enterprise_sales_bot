@@ -3,6 +3,7 @@
 Cross-post to LinkedIn and Twitter using CDP with Edge browser.
 Same approach as HyperNexus/scripts/auto_linkedin_page.py
 """
+
 import websocket
 import json
 import time
@@ -41,7 +42,7 @@ HyperNexus ships with all four by default.
 
 https://hypernexus.site/blog/harden-your-self-hosted-ai-a-practical-checklist-for-tls-auth-and-network-isolation.html
 
-#AI #Security"""
+#AI #Security""",
     },
     {
         "title": "CISO's Checklist for Agentic AI",
@@ -72,7 +73,7 @@ HyperNexus checks every box.
 
 https://hypernexus.site/blog/the-cisos-uncompromising-checklist-for-agentic-ai-governance-sso-rbac-and-immutable-audits.html
 
-#AI #Enterprise"""
+#AI #Enterprise""",
     },
     {
         "title": "Zero Trust AI Architecture",
@@ -100,7 +101,7 @@ One unauthenticated path = complete compromise.
 
 https://hypernexus.site/blog/zero-trust-ai-architecture-authenticating-every-tool-call-memory-access-and-model-request.html
 
-#AI #ZeroTrust"""
+#AI #ZeroTrust""",
     },
     {
         "title": "Securing Self-Hosted AI with Nginx",
@@ -128,7 +129,7 @@ Bind to localhost + Nginx reverse proxy with TLS.
 
 https://hypernexus.site/blog/securing-self-hosted-ai-localhost-isolation-with-tls-and-nginx.html
 
-#AI #Security"""
+#AI #Security""",
     },
     {
         "title": "4-Point TLS & Zero Trust Checklist",
@@ -152,7 +153,7 @@ https://hypernexus.site/blog/hardening-self-hosted-ai-the-4-point-tls-amp-zero-t
 
 https://hypernexus.site/blog/hardening-self-hosted-ai-the-4-point-tls-amp-zero-trust-checklist.html
 
-#AI #Security"""
+#AI #Security""",
     },
     {
         "title": "What CISOs Should Demand",
@@ -179,8 +180,8 @@ https://hypernexus.site/blog/what-your-ciso-should-demand-before-deploying-agent
 Full checklist:
 https://hypernexus.site/blog/what-your-ciso-should-demand-before-deploying-agentic-ai-a-practical-governance-checklist.html
 
-#AI #Enterprise"""
-    }
+#AI #Enterprise""",
+    },
 ]
 
 
@@ -196,7 +197,9 @@ def get_browser_ws():
 def create_tab(browser_ws, url="about:blank"):
     """Create a new tab and return its WebSocket URL"""
     ws = websocket.create_connection(browser_ws, timeout=15)
-    ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url}}))
+    ws.send(
+        json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url}})
+    )
     time.sleep(2)
     target_id = None
     for _ in range(5):
@@ -261,8 +264,12 @@ def open_linkedin_post_editor(ws):
     navigate(ws, LINKEDIN_COMPANY_URL)
 
     # Click "Create" button
-    result = send_and_recv(ws, 10, "Runtime.evaluate", {
-        "expression": """
+    result = send_and_recv(
+        ws,
+        10,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var buttons = document.querySelectorAll('button');
             for (var i = 0; i < buttons.length; i++) {
@@ -274,8 +281,9 @@ def open_linkedin_post_editor(ws):
             return 'Create not found';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     if not result or "clicked" not in str(result):
         log(f"Create button: {result}")
@@ -284,8 +292,12 @@ def open_linkedin_post_editor(ws):
     time.sleep(2)
 
     # Click "Start a post"
-    result = send_and_recv(ws, 11, "Runtime.evaluate", {
-        "expression": """
+    result = send_and_recv(
+        ws,
+        11,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var links = document.querySelectorAll('a, button, [role="button"]');
             for (var i = 0; i < links.length; i++) {
@@ -298,8 +310,9 @@ def open_linkedin_post_editor(ws):
             return 'Start a post not found';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     if not result or "clicked" not in str(result):
         log(f"Start a post: {result}")
@@ -312,8 +325,12 @@ def open_linkedin_post_editor(ws):
 def type_linkedin_content(ws, content):
     """Type content into the LinkedIn post editor"""
     # Focus the post editor textbox
-    result = send_and_recv(ws, 12, "Runtime.evaluate", {
-        "expression": """
+    result = send_and_recv(
+        ws,
+        12,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var editables = document.querySelectorAll('[contenteditable="true"][role="textbox"]');
             for (var i = 0; i < editables.length; i++) {
@@ -327,8 +344,9 @@ def type_linkedin_content(ws, content):
             return 'editor not found';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     if not result or "focused" not in str(result):
         log(f"Editor focus: {result}")
@@ -337,7 +355,11 @@ def type_linkedin_content(ws, content):
     time.sleep(1)
 
     # Type content
-    ws.send(json.dumps({"id": 13, "method": "Input.insertText", "params": {"text": content}}))
+    ws.send(
+        json.dumps(
+            {"id": 13, "method": "Input.insertText", "params": {"text": content}}
+        )
+    )
     time.sleep(3)
     for _ in range(5):
         try:
@@ -351,8 +373,12 @@ def type_linkedin_content(ws, content):
 
 def click_linkedin_post_button(ws):
     """Click the Post button to publish on LinkedIn"""
-    result = send_and_recv(ws, 14, "Runtime.evaluate", {
-        "expression": """
+    result = send_and_recv(
+        ws,
+        14,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var buttons = document.querySelectorAll('button');
             for (var i = 0; i < buttons.length; i++) {
@@ -364,8 +390,9 @@ def click_linkedin_post_button(ws):
             return 'Post button not found or disabled';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     time.sleep(5)
 
@@ -400,18 +427,27 @@ def post_to_twitter(ws, content):
     navigate(ws, "https://x.com/compose/post", wait=10)
 
     # Check if logged in
-    result = send_and_recv(ws, 20, "Runtime.evaluate", {
-        "expression": "document.querySelector('[data-testid=\"tweetTextarea_0\"]') ? 'ready' : 'not_ready'",
-        "returnByValue": True,
-    })
+    result = send_and_recv(
+        ws,
+        20,
+        "Runtime.evaluate",
+        {
+            "expression": "document.querySelector('[data-testid=\"tweetTextarea_0\"]') ? 'ready' : 'not_ready'",
+            "returnByValue": True,
+        },
+    )
 
     if result != "ready":
         log("Twitter: Not logged in or composer not found")
         return False
 
     # Focus and type
-    send_and_recv(ws, 21, "Runtime.evaluate", {
-        "expression": """
+    send_and_recv(
+        ws,
+        21,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var el = document.querySelector('[data-testid="tweetTextarea_0"]');
             if (el) {
@@ -421,16 +457,25 @@ def post_to_twitter(ws, content):
             return 'not found';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     time.sleep(1)
-    ws.send(json.dumps({"id": 22, "method": "Input.insertText", "params": {"text": content[:280]}}))
+    ws.send(
+        json.dumps(
+            {"id": 22, "method": "Input.insertText", "params": {"text": content[:280]}}
+        )
+    )
     time.sleep(2)
 
     # Click tweet button
-    result = send_and_recv(ws, 23, "Runtime.evaluate", {
-        "expression": """
+    result = send_and_recv(
+        ws,
+        23,
+        "Runtime.evaluate",
+        {
+            "expression": """
         (function() {
             var btn = document.querySelector('[data-testid="tweetButton"]');
             if (btn) {
@@ -440,8 +485,9 @@ def post_to_twitter(ws, content):
             return 'button not found';
         })()
         """,
-        "returnByValue": True,
-    })
+            "returnByValue": True,
+        },
+    )
 
     time.sleep(3)
 
@@ -465,7 +511,9 @@ def main():
         print("ERROR: Edge browser not running with --remote-debugging-port=9222")
         print()
         print("Please start Edge with:")
-        print('  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --remote-debugging-port=9222')
+        print(
+            '  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe" --remote-debugging-port=9222'
+        )
         print()
         return
 

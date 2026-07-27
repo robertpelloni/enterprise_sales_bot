@@ -105,6 +105,7 @@
           transparent
         );
         animation: cardSpin 8s linear infinite;
+        pointer-events: none;
       }
       @keyframes cardSpin {
         0% {
@@ -228,6 +229,7 @@
           transparent
         );
         animation: btnShine 2s linear infinite;
+        pointer-events: none;
       }
       @keyframes btnShine {
         0% {
@@ -391,11 +393,52 @@
       <div class="card">
         <div class="price">
           <!-- Monthly/Yearly Tabs -->
-          <div style="display:flex;justify-content:center;gap:0;margin:0 auto 20px">
-            <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:600;cursor:pointer;background:hsl(var(--accent-hue),80%,60%);color:white;transition:all 0.3s">Monthly</button>
-            <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-left:none;border-radius:0 6px 6px 0;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:hsl(var(--accent-hue),80%,60%);transition:all 0.3s">Yearly <span style="font-size:11px;opacity:0.8">Save 17%</span></button>
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              gap: 0;
+              margin: 0 auto 20px;
+            "
+          >
+            <button
+              id="tab-monthly"
+              onclick="switchPlan('monthly')"
+              style="
+                padding: 8px 20px;
+                border: 1px solid hsl(var(--accent-hue), 80%, 60%);
+                border-right: none;
+                border-radius: 6px 0 0 6px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                background: hsl(var(--accent-hue), 80%, 60%);
+                color: white;
+                transition: all 0.3s;
+              "
+            >
+              Monthly
+            </button>
+            <button
+              id="tab-yearly"
+              onclick="switchPlan('yearly')"
+              style="
+                padding: 8px 20px;
+                border: 1px solid hsl(var(--accent-hue), 80%, 60%);
+                border-left: none;
+                border-radius: 0 6px 6px 0;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                background: transparent;
+                color: hsl(var(--accent-hue), 80%, 60%);
+                transition: all 0.3s;
+              "
+            >
+              Yearly <span style="font-size: 11px; opacity: 0.8">Save 17%</span>
+            </button>
           </div>
-        <div class="price-amount" id="price-display">
+          <div class="price-amount" id="price-display">
             <span class="dollar">$</span><span id="price-value">5</span>
           </div>
           <div class="price-period" id="price-period">per seat / month</div>
@@ -554,7 +597,9 @@
 
         if (priceValue) priceValue.textContent = isYearly ? "50" : "5";
         if (pricePeriod)
-          pricePeriod.textContent = isYearly ? "per seat / year" : "per seat / month";
+          pricePeriod.textContent = isYearly
+            ? "per seat / year"
+            : "per seat / month";
         if (priceNote)
           priceNote.textContent = isYearly
             ? "That's $4.17/month. Save 17% vs monthly."
@@ -565,20 +610,28 @@
         if (compPrice) compPrice.textContent = isYearly ? "$50/yr" : "$5/mo";
 
         // Update tab styles
-        var tabM = document.getElementById('tab-monthly');
-        var tabY = document.getElementById('tab-yearly');
-        if(tabM){
-          tabM.style.background = isYearly ? 'transparent' : 'hsl(var(--accent-hue), 80%, 60%)';
-          tabM.style.color = isYearly ? 'hsl(var(--accent-hue), 80%, 60%)' : 'white';
+        var tabM = document.getElementById("tab-monthly");
+        var tabY = document.getElementById("tab-yearly");
+        if (tabM) {
+          tabM.style.background = isYearly
+            ? "transparent"
+            : "hsl(var(--accent-hue), 80%, 60%)";
+          tabM.style.color = isYearly
+            ? "hsl(var(--accent-hue), 80%, 60%)"
+            : "white";
         }
-        if(tabY){
-          tabY.style.background = isYearly ? 'hsl(var(--accent-hue), 80%, 60%)' : 'transparent';
-          tabY.style.color = isYearly ? 'white' : 'hsl(var(--accent-hue), 80%, 60%)';
+        if (tabY) {
+          tabY.style.background = isYearly
+            ? "hsl(var(--accent-hue), 80%, 60%)"
+            : "transparent";
+          tabY.style.color = isYearly
+            ? "white"
+            : "hsl(var(--accent-hue), 80%, 60%)";
         }
       }
 
       // Set initial state on load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         var savedPlan = localStorage.getItem("pricing_plan") || "monthly";
         switchPlan(savedPlan);
       });

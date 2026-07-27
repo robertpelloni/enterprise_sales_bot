@@ -387,7 +387,10 @@
           <a
             href="#"
             class="btn btn-secondary"
-            onclick="event.preventDefault(); return false;"
+            onclick="
+              event.preventDefault();
+              return false;
+            "
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path
@@ -638,7 +641,7 @@
         if (priceLabel) priceLabel.textContent = isYearly ? "$50/yr" : "$5/mo";
 
         // Complementary color (180 degrees offset from accent)
-        var compColor = 'hsl(calc(var(--accent-hue) + 180), 80%, 50%)';
+        var compColor = "hsl(calc(var(--accent-hue) + 180), 80%, 50%)";
 
         var tabM = document.getElementById("tab-monthly");
         var tabY = document.getElementById("tab-yearly");
@@ -655,7 +658,7 @@
       }
 
       // Set initial state on load
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         var savedPlan = localStorage.getItem("pricing_plan") || "monthly";
         switchPlan(savedPlan);
       });

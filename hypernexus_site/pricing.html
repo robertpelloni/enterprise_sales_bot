@@ -393,7 +393,7 @@
           <!-- Monthly/Yearly Tabs -->
           <div style="display:flex;justify-content:center;gap:0;margin:0 auto 20px">
             <button id="tab-monthly" onclick="switchPlan('monthly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-right:none;border-radius:6px 0 0 6px;font-size:13px;font-weight:600;cursor:pointer;background:hsl(var(--accent-hue),80%,60%);color:white;transition:all 0.3s">Monthly</button>
-            <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-left:none;border-radius:0 6px 6px 0;font-size:13px;font-weight:600;cursor:pointer;background:white;color:hsl(var(--accent-hue),80%,60%);transition:all 0.3s">Yearly</button>
+            <button id="tab-yearly" onclick="switchPlan('yearly')" style="padding:8px 20px;border:1px solid hsl(var(--accent-hue),80%,60%);border-left:none;border-radius:0 6px 6px 0;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:hsl(var(--accent-hue),80%,60%);transition:all 0.3s">Yearly <span style="font-size:11px;opacity:0.8">Save 17%</span></button>
           </div>
         <div class="price-amount" id="price-display">
             <span class="dollar">$</span><span id="price-value">5</span>
@@ -545,46 +545,43 @@
       function switchPlan(plan) {
         var isYearly = plan === "yearly";
         window.__pricing_plan = plan;
-        window.__price_amount = plan === "yearly" ? 5000 : 500;
+        window.__price_amount = isYearly ? 5000 : 500;
         localStorage.setItem("pricing_plan", plan);
 
         var priceValue = document.getElementById("price-value");
         var pricePeriod = document.getElementById("price-period");
         var priceNote = document.getElementById("price-note");
 
-        if (priceValue) priceValue.textContent = plan === "yearly" ? "50" : "5";
+        if (priceValue) priceValue.textContent = isYearly ? "50" : "5";
         if (pricePeriod)
-          pricePeriod.textContent =
-            plan === "yearly" ? "per seat / year" : "per seat / month";
+          pricePeriod.textContent = isYearly ? "per seat / year" : "per seat / month";
         if (priceNote)
-          priceNote.textContent =
-            plan === "yearly"
-              ? "That's $4.17/month. Save 17% vs monthly."
-              : "Less than a coffee per month. Cancel anytime.";
+          priceNote.textContent = isYearly
+            ? "That's $4.17/month. Save 17% vs monthly."
+            : "Less than a coffee per month. Cancel anytime.";
 
+        // Update comparison price
+        var compPrice = document.getElementById("comparison-price");
+        if (compPrice) compPrice.textContent = isYearly ? "$50/yr" : "$5/mo";
+
+        // Update tab styles
         var tabM = document.getElementById('tab-monthly');
         var tabY = document.getElementById('tab-yearly');
-        var accent = 'hsl(' + getComputedStyle(document.documentElement).getPropertyValue('--accent-hue').trim() + ', 80%, 60%)';
-        if(tabM){tabM.style.background = isYearly ? 'white' : accent; tabM.style.color = isYearly ? accent : 'white'; tabM.style.borderColor = accent;}
-        if(tabY){tabY.style.background = isYearly ? accent : 'white'; tabY.style.color = isYearly ? 'white' : accent; tabY.style.borderColor = accent;}
+        if(tabM){
+          tabM.style.background = isYearly ? 'transparent' : 'hsl(var(--accent-hue), 80%, 60%)';
+          tabM.style.color = isYearly ? 'hsl(var(--accent-hue), 80%, 60%)' : 'white';
+        }
+        if(tabY){
+          tabY.style.background = isYearly ? 'hsl(var(--accent-hue), 80%, 60%)' : 'transparent';
+          tabY.style.color = isYearly ? 'white' : 'hsl(var(--accent-hue), 80%, 60%)';
+        }
       }
 
-      // Set initial state
-      if (__pricing_plan === "yearly") {
-        switchPlan("yearly");
-        return;
-        var priceValue = document.getElementById("price-value");
-        var pricePeriod = document.getElementById("price-period");
-        var priceNote = document.getElementById("price-note");
-        if (priceValue) priceValue.textContent = "50";
-        if (pricePeriod) pricePeriod.textContent = "per seat / year";
-        if (priceNote)
-          priceNote.textContent = "That's $4.17/month. Save 17% vs monthly.";
-        var monthlyLabel = document.getElementById("monthly-label");
-        var annualLabel = document.getElementById("annual-label");
-        if (monthlyLabel) monthlyLabel.style.color = "#64748b";
-        if (annualLabel) annualLabel.style.color = "#0284c7";
-      }
+      // Set initial state on load
+      document.addEventListener('DOMContentLoaded', function() {
+        var savedPlan = localStorage.getItem("pricing_plan") || "monthly";
+        switchPlan(savedPlan);
+      });
     </script>
   </body>
 </html>

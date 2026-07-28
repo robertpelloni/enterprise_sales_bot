@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/smtp"
 	"os"
 	"time"
@@ -76,9 +77,9 @@ func (s *GmailOAuth2Sender) sendViaSMTP(to string, msg []byte) error {
 		return fmt.Errorf("failed to get token: %w", err)
 	}
 
-	// Connect to Gmail SMTP
+	// Connect to Gmail SMTP (port 587 uses STARTTLS, not direct TLS)
 	addr := "smtp.gmail.com:587"
-	conn, err := tls.Dial("tcp", addr, &tls.Config{ServerName: "smtp.gmail.com"})
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("failed to connect: %w", err)
 	}
@@ -89,6 +90,12 @@ func (s *GmailOAuth2Sender) sendViaSMTP(to string, msg []byte) error {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
 	defer client.Close()
+
+	// STARTTLS
+	tlsConfig := &tls.Config{ServerName: "smtp.gmail.com"}
+	if err = client.StartTLS(tlsConfig); err != nil {
+		return fmt.Errorf("STARTTLS failed: %w", err)
+	}
 
 	// XOAUTH2 auth string
 	authStr := fmt.Sprintf("user=%s\x01auth=Bearer %s\x01\x01", s.fromEmail, newToken.AccessToken)

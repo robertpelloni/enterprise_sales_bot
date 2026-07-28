@@ -175,13 +175,22 @@ func (db *DB) ListAllCompanies(ctx context.Context) ([]Company, error) {
 
 func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, error) {
 	query := `
-		SELECT DISTINCT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.created_at, d.updated_at
+		SELECT DISTINCT d.id, d.company_id, d.current_state, d.quoted_pricing, d.custom_requirements, d.technical_dossier, d.created_at, d.updated_at, d.cadence_step
 		FROM deals d
 		JOIN companies c ON d.company_id = c.id
 		JOIN contacts co ON co.company_id = c.id
 		WHERE d.current_state = $1
 		AND co.email IS NOT NULL AND co.email != ''
-		ORDER BY d.updated_at DESC
+		AND co.id = (
+			SELECT MIN(co2.id) FROM contacts co2
+			WHERE co2.company_id = c.id
+			AND co2.email IS NOT NULL AND co2.email != ''
+		)
+		AND (
+			SELECT COUNT(*) FROM interactions i
+			WHERE i.contact_id = co.id AND i.direction = 'Outbound'
+		) < 10
+		ORDER BY d.cadence_step ASC, d.updated_at DESC
 	`
 	rows, err := db.Conn.QueryContext(ctx, query, state)
 	if err != nil {
@@ -203,6 +212,7 @@ func (db *DB) ListDealsByState(ctx context.Context, state LeadState) ([]Deal, er
 			&dossier,
 			&deal.CreatedAt,
 			&deal.UpdatedAt,
+			&deal.CadenceStep,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan deal: %w", err)
 		}
@@ -368,6 +378,7 @@ func (db *DB) ListContactsByCompany(ctx context.Context, companyID int64) ([]Con
 		SELECT id, company_id, name, role, email, github_handle, linkedin_url, preferred_channel, created_at, updated_at
 		FROM contacts
 		WHERE company_id = $1
+		ORDER BY id ASC
 	`
 	rows, err := db.Conn.QueryContext(ctx, query, companyID)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"gitlab.com/robertpelloni/marketing_agent/internal/db"
@@ -56,7 +57,7 @@ func (w *SocialPosterWorker) Run(ctx context.Context, interval time.Duration) {
 }
 
 func (w *SocialPosterWorker) postAll(ctx context.Context) {
-	platforms := []string{"reddit", "bluesky", "twitter", "linkedin"}
+	platforms := []string{"bluesky", "twitter", "linkedin"}
 
 	// Separate accounts for both brands
 	usernames := map[string]map[string]string{
@@ -74,12 +75,38 @@ func (w *SocialPosterWorker) postAll(ctx context.Context) {
 		},
 	}
 
+	// Process platforms in parallel with timeouts
+	var wg sync.WaitGroup
 	for _, platform := range platforms {
-		// Post for TormentNexus
-		w.generateAndPost(ctx, "tormentnexus", platform, usernames["tormentnexus"][platform])
-		// Post for HyperNexus
-		w.generateAndPost(ctx, "hypernexus", platform, usernames["hypernexus"][platform])
+		wg.Add(2)
+		go func(p, brand string, uname string) {
+			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					slog.Error(fmt.Sprintf("SocialPoster: %s post panicked for %s: %v", p, brand, r))
+				}
+			}()
+			postCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+			defer cancel()
+			w.generateAndPost(postCtx, brand, p, uname)
+		}(platform, "tormentnexus", usernames["tormentnexus"][platform])
+		go func(p, brand string, uname string) {
+			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					slog.Error(fmt.Sprintf("SocialPoster: %s post panicked for %s: %v", p, brand, r))
+				}
+			}()
+			postCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+			defer cancel()
+			w.generateAndPost(postCtx, brand, p, uname)
+		}(platform, "hypernexus", usernames["hypernexus"][platform])
 	}
+	wg.Wait()
+
+	// Reddit posts disabled (go-rod headless browser blocks forever)
+	// TODO: Switch Reddit to API-only posting
+	slog.Info("SocialPoster: Skipping Reddit headless posts (go-rod blocks). Use API instead.")
 
 	w.SendDirectMarketing(ctx, "tormentnexus")
 	w.SendDirectMarketing(ctx, "hypernexus")

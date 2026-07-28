@@ -312,12 +312,12 @@ func (p *TwitterProvider) Post(ctx context.Context, req PostRequest) error {
 	httpReq, _ := http.NewRequestWithContext(ctx, "POST", apiURL, bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Try OAuth 2.0 Bearer token first (Read+Write app permissions)
-	if p.BearerToken != "" && len(p.BearerToken) > 50 {
-		httpReq.Header.Set("Authorization", "Bearer "+p.BearerToken)
-	} else if p.AccessToken != "" && p.APISecret != "" && p.AccessSecret != "" {
-		// Fall back to OAuth 1.0a
+	// Use OAuth 1.0a for posting (Bearer token is read-only)
+	if p.AccessToken != "" && p.APISecret != "" && p.AccessSecret != "" && p.APIKey != "" {
 		httpReq.Header.Set("Authorization", oauth1Header("POST", apiURL, p.APIKey, p.APISecret, p.AccessToken, p.AccessSecret))
+	} else if p.BearerToken != "" && len(p.BearerToken) > 50 {
+		// Fall back to Bearer token (may not work for posting)
+		httpReq.Header.Set("Authorization", "Bearer "+p.BearerToken)
 	} else {
 		return fmt.Errorf("twitter: no valid auth credentials configured")
 	}

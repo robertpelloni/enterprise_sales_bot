@@ -322,7 +322,7 @@ func main() {
 
 	// 2j. Setup Cadence-aware outreach scheduling
 	cadenceManager := communication.NewCadenceAwareManager(commManager, database)
-	go cadenceManager.RunCadence(ctx, 1*time.Hour) // checks every 1h for next touch
+	go cadenceManager.RunCadence(ctx, 15*time.Minute) // checks every 15min for next touch
 
 	// 2i. Setup IMAP Email Receiver
 	if cfg.IMAPHost != "" && cfg.IMAPUsername != "" && cfg.IMAPPassword != "" {

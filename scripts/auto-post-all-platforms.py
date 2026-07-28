@@ -1,56 +1,44 @@
 #!/usr/bin/env python3
 """
-Automated Multi-Platform Poster
-Posts to Hacker News, Reddit, and Twitter using MiMo v2.5 for content generation
+Automated Multi-Platform Poster with MiMo v2.5
+Posts to Hacker News, Reddit, and Twitter using CDP
 """
-
-import requests
-import json
-import time
 import websocket
+import json
 import urllib.request
+import time
 import os
+import requests
 
 # ═══════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 
-HERMES_API_URL = os.environ.get(
-    "HERMES_API_URL", "https://token-plan-sgp.xiaomimimo.com/v1"
-)
-HERMES_API_KEY = os.environ.get(
-    "HERMES_API_KEY", "tp-s0jae9p6m9d8pirs67549as0ewk9a1up0i1379o1kcg4u6r3"
-)
+HERMES_API_URL = os.environ.get("HERMES_API_URL", "https://token-plan-sgp.xiaomimimo.com/v1")
+HERMES_API_KEY = os.environ.get("HERMES_API_KEY", "tp-s0jae9p6m9d8pirs67549as0ewk9a1up0i1379o1kcg4u6r3")
 HERMES_MODEL = os.environ.get("HERMES_MODEL", "mimo-v2.5")
 
-# Platform configs
-PLATFORMS = {
-    "hackernews": {
-        "url": "https://news.ycombinator.com/submit",
-        "title_prefix": "Show HN:",
-    },
-    "reddit": {
-        "subreddits": [
-            "selfhosted",
-            "MachineLearning",
-            "LocalLLaMA",
-            "programming",
-            "artificial",
-        ]
-    },
-    "twitter": {"search_terms": ["MCP server", "AI agent framework", "Claude Code"]},
-}
+# Less prominent subreddits (smaller, more engaged communities)
+REDDIT_SUBREDDITS = [
+    "MCP_Servers",
+    "AI_Agents",
+    "AgentFrameworks",
+    "LLMDevs",
+    "PromptEngineering",
+    "AItools",
+    "devtools",
+    "opensourceai"
+]
 
 # ═══════════════════════════════════════════════════════════════
 # LLM CONTENT GENERATION
 # ═══════════════════════════════════════════════════════════════
 
-
-def generate_content(platform, topic="AI infrastructure"):
+def generate_content(platform, subreddit=None):
     """Generate platform-specific content using MiMo v2.5"""
-
+    
     prompts = {
-        "hackernews_title": """Generate a compelling Hacker News 'Show HN' title for TormentNexus, an open-source local-first AI control plane.
+        "hackernews_title": """Generate a Hacker News 'Show HN' title for TormentNexus.
 
 Key features:
 - Progressive MCP tool routing (60% token reduction)
@@ -64,8 +52,8 @@ Requirements:
 - Technical but accessible
 - Mention "local-first" or "open source"
 
-Example: "Show HN: Local-first AI Control Plane with Progressive Tool Routing"
-""",
+Return ONLY the title, nothing else.""",
+
         "hackernews_body": """Write a Hacker News 'Show HN' post body for TormentNexus.
 
 Include:
@@ -78,160 +66,135 @@ Include:
    - Cloud version: https://hypernexus.site
 
 Keep it under 300 words. Be technical but accessible. End with "Happy to answer questions!"
-""",
-        "reddit_title": """Generate a Reddit post title for r/{subreddit} about TormentNexus.
+Return ONLY the post body.""",
 
-Subreddit context:
-- r/selfhosted: Focus on local-first, self-hosting, privacy
-- r/MachineLearning: Focus on architecture, performance, research
-- r/LocalLLaMA: Focus on Ollama integration, local models
-- r/programming: Focus on Go + TypeScript architecture
-- r/artificial: Focus on AI agents, tool routing
+        "reddit": f"""Write a Reddit post for r/{subreddit or 'MCP_Servers'} about TormentNexus.
+
+Context about the subreddit:
+- MCP_Servers: People interested in Model Context Protocol servers
+- AI_Agents: People building AI agents
+- AgentFrameworks: People looking for agent frameworks
+- LLMDevs: LLM developers
+- PromptEngineering: Prompt engineers
+- AItools: People looking for AI tools
+- devtools: Developer tool enthusiasts
+- opensourceai: Open source AI community
+
+Key features to mention:
+- Progressive MCP tool routing (60% token reduction)
+- Persistent memory across sessions (14K+ memories)
+- LLM waterfall failover (zero downtime)
+- Works with Claude Code, Cursor, Copilot, Gemini CLI
+
+Links to include:
+- Open source: https://github.com/MDMAtk/TormentNexus
+- Website: https://tormentnexus.site
+
+Requirements:
+- Write a title on the first line
+- Write the body after a blank line
+- Be authentic and helpful, not salesy
+- Focus on the problem being solved
+- Under 300 words total
+- Match the subreddit's tone
+
+Format:
+TITLE: [your title]
+
+[body text]""",
+
+        "twitter": """Generate a single tweet about TormentNexus.
 
 Key features:
 - Progressive MCP tool routing (60% token reduction)
-- Persistent memory across sessions
-- LLM waterfall failover
+- Persistent memory across sessions (14K+ memories)
+- LLM waterfall failover (zero downtime)
 - Works with Claude Code, Cursor, Copilot, Gemini CLI
 
-Requirements:
-- Under 300 characters
-- Mention the subreddit context
-- Include "open source" or "local-first"
-""",
-        "reddit_body": """Write a Reddit post body for r/{subreddit} about TormentNexus.
-
-Include:
-1. What it does (2-3 sentences)
-2. Why it matters for this subreddit (2-3 bullet points)
-3. Technical details relevant to the subreddit
-4. Links:
-   - Open source: https://github.com/MDMAtk/TormentNexus
-   - Website: https://tormentnexus.site
-   - Cloud version: https://hypernexus.site
-
-Keep it under 500 words. Match the subreddit's tone and interests.
-""",
-        "twitter_thread": """Generate a 6-tweet thread about TormentNexus for Twitter.
-
-Tweet 1: Hook - What problem does it solve?
-Tweet 2: Key feature 1 - Progressive MCP tool routing
-Tweet 3: Key feature 2 - Persistent memory
-Tweet 4: Key feature 3 - LLM waterfall failover
-Tweet 5: Why local-first matters
-Tweet 6: CTA with links
+Links:
+- https://github.com/MDMAtk/TormentNexus
+- https://tormentnexus.site
 
 Requirements:
-- Each tweet under 280 characters
-- Use emojis sparingly
-- Include hashtags: #AI #MCP #OpenSource
-- Links in tweet 6:
-  - Open source: https://github.com/MDMAtk/TormentNexus
-  - Website: https://tormentnexus.site
-""",
+- Under 280 characters
+- Include one link
+- Use 1-2 hashtags max
+- Be authentic, not salesy
+
+Return ONLY the tweet text."""
     }
-
-    prompt_key = f"{platform}_title" if "title" in topic else f"{platform}_body"
-    if platform == "twitter":
-        prompt_key = "twitter_thread"
-
-    prompt = prompts.get(prompt_key, prompts["hackernews_body"])
-
+    
+    prompt_key = platform
+    if platform == "reddit":
+        prompt_key = "reddit"
+    
+    prompt = prompts.get(prompt_key, prompts["twitter"])
+    
     try:
         response = requests.post(
             f"{HERMES_API_URL}/chat/completions",
             headers={
                 "Authorization": f"Bearer {HERMES_API_KEY}",
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
             json={
                 "model": HERMES_MODEL,
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are an expert technical writer and marketer. Write compelling, accurate content for developer audiences.",
-                    },
-                    {"role": "user", "content": prompt},
+                    {"role": "system", "content": "You are an expert technical writer. Write concise, authentic content for developer audiences. No fluff, no marketing speak."},
+                    {"role": "user", "content": prompt}
                 ],
-                "max_tokens": 1000,
-                "temperature": 0.7,
+                "max_tokens": 500,
+                "temperature": 0.8
             },
-            timeout=30,
+            timeout=30
         )
-
+        
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
         else:
-            print(f"LLM error: {response.status_code}")
+            print(f"  LLM error: {response.status_code}")
             return None
     except Exception as e:
-        print(f"LLM error: {e}")
+        print(f"  LLM error: {e}")
         return None
 
-
 # ═══════════════════════════════════════════════════════════════
-# CDP BROWSER AUTOMATION
+# CDP HELPERS
 # ═══════════════════════════════════════════════════════════════
 
-
-def get_cdp_url():
-    """Get a usable browser tab URL"""
+def get_browser_ws():
+    """Get browser WebSocket URL"""
     try:
-        resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
-        tabs = json.loads(resp.read())
-        # Prefer about:blank tabs
-        for tab in tabs:
-            if tab.get("url", "") == "about:blank":
-                return tab.get("webSocketDebuggerUrl")
-        # Fallback to generic tabs
-        for tab in tabs:
-            url = tab.get("url", "")
-            if (
-                url.startswith("https://")
-                and "x.com" not in url
-                and "linkedin" not in url
-            ):
-                return tab.get("webSocketDebuggerUrl")
-        # Create new tab
-        browser_resp = urllib.request.urlopen(
-            "http://localhost:9222/json/version", timeout=5
-        )
-        browser_ws = json.loads(browser_resp.read()).get("webSocketDebuggerUrl")
-        if browser_ws:
-            ws = websocket.create_connection(browser_ws, timeout=15)
-            ws.send(
-                json.dumps(
-                    {
-                        "id": 1,
-                        "method": "Target.createTarget",
-                        "params": {"url": "about:blank"},
-                    }
-                )
-            )
-            time.sleep(2)
-            target_id = None
-            for _ in range(5):
-                try:
-                    ws.settimeout(3)
-                    d = json.loads(ws.recv())
-                    if d.get("id") == 1:
-                        target_id = d.get("result", {}).get("targetId")
-                        break
-                except:
-                    continue
-            ws.close()
-            if target_id:
-                resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
-                for t in json.loads(resp.read()):
-                    if t.get("id") == target_id:
-                        return t.get("webSocketDebuggerUrl")
+        resp = urllib.request.urlopen("http://localhost:9222/json/version", timeout=5)
+        return json.loads(resp.read()).get("webSocketDebuggerUrl")
     except:
-        pass
+        return None
+
+def create_tab(browser_ws, url):
+    """Create a new tab and return its WebSocket URL"""
+    ws = websocket.create_connection(browser_ws, timeout=15)
+    ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url}}))
+    time.sleep(5)
+    target_id = None
+    for _ in range(5):
+        try:
+            ws.settimeout(3)
+            d = json.loads(ws.recv())
+            if d.get("id") == 1:
+                target_id = d.get("result", {}).get("targetId")
+                break
+        except:
+            continue
+    ws.close()
+    if target_id:
+        resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
+        for t in json.loads(resp.read()):
+            if t.get("id") == target_id:
+                return t.get("webSocketDebuggerUrl")
     return None
 
-
 def send_and_recv(ws, msg_id, method, params=None, timeout=8):
-    """Send CDP command and wait for response"""
+    """Send CDP command and get response"""
     ws.send(json.dumps({"id": msg_id, "method": method, "params": params or {}}))
     time.sleep(1)
     result = None
@@ -246,82 +209,79 @@ def send_and_recv(ws, msg_id, method, params=None, timeout=8):
             break
     return result
 
-
-def navigate(ws, url, wait=7):
-    """Navigate to URL"""
-    ws.send(json.dumps({"id": 1, "method": "Page.navigate", "params": {"url": url}}))
-    time.sleep(wait)
-    for _ in range(10):
-        try:
-            ws.settimeout(0.5)
-            ws.recv()
-        except:
-            break
-
-
 # ═══════════════════════════════════════════════════════════════
-# PLATFORM POSTERS
+# POSTING FUNCTIONS
 # ═══════════════════════════════════════════════════════════════
 
-
-def post_to_hackernews(ws, title, body):
+def post_to_hackernews(browser_ws):
     """Post to Hacker News"""
-    print("[HN] Navigating to submit page...")
-    navigate(ws, "https://news.ycombinator.com/submit")
-    time.sleep(3)
-
+    print("\n" + "=" * 60)
+    print("HACKER NEWS")
+    print("=" * 60)
+    
+    # Generate content
+    print("Generating title...")
+    title = generate_content("hackernews_title")
+    if not title:
+        print("Failed to generate title")
+        return False
+    print(f"Title: {title}")
+    
+    print("Generating body...")
+    body = generate_content("hackernews_body")
+    if not body:
+        print("Failed to generate body")
+        return False
+    print(f"Body: {body[:100]}...")
+    
+    # Create tab and navigate
+    print("Creating tab...")
+    tab_ws = create_tab(browser_ws, "https://news.ycombinator.com/submit")
+    if not tab_ws:
+        print("Failed to create tab")
+        return False
+    
+    ws = websocket.create_connection(tab_ws, timeout=30)
+    print("Connected to HN submit page")
+    
     # Fill title
-    print("[HN] Filling title...")
-    send_and_recv(
-        ws,
-        2,
-        "Runtime.evaluate",
-        {
-            "expression": f"""
+    print("Filling title...")
+    result = send_and_recv(ws, 2, "Runtime.evaluate", {
+        "expression": f"""
         (function() {{
-            var title = document.querySelector('input[name="title"]');
-            if (title) {{
-                title.value = {json.dumps(title)};
+            var el = document.querySelector('input[name="title"]');
+            if (el) {{
+                el.value = {json.dumps(title)};
                 return 'filled';
             }}
             return 'not found';
         }})()
         """,
-            "returnByValue": True,
-        },
-    )
-    time.sleep(1)
-
+        "returnByValue": True
+    })
+    print(f"  Title: {result}")
+    
     # Fill body
-    print("[HN] Filling body...")
-    send_and_recv(
-        ws,
-        3,
-        "Runtime.evaluate",
-        {
-            "expression": f"""
+    print("Filling body...")
+    result = send_and_recv(ws, 3, "Runtime.evaluate", {
+        "expression": f"""
         (function() {{
-            var text = document.querySelector('textarea[name="text"]');
-            if (text) {{
-                text.value = {json.dumps(body)};
+            var el = document.querySelector('textarea[name="text"]');
+            if (el) {{
+                el.value = {json.dumps(body)};
                 return 'filled';
             }}
             return 'not found';
         }})()
         """,
-            "returnByValue": True,
-        },
-    )
-    time.sleep(1)
-
+        "returnByValue": True
+    })
+    print(f"  Body: {result}")
+    
     # Submit
-    print("[HN] Submitting...")
-    result = send_and_recv(
-        ws,
-        4,
-        "Runtime.evaluate",
-        {
-            "expression": """
+    print("Submitting...")
+    result = send_and_recv(ws, 4, "Runtime.evaluate", {
+        "expression": """
         (function() {
             var btn = document.querySelector('input[type="submit"]');
             if (btn) {
@@ -331,74 +291,94 @@ def post_to_hackernews(ws, title, body):
             return 'not found';
         })()
         """,
-            "returnByValue": True,
-        },
-    )
-
+        "returnByValue": True
+    })
+    print(f"  Result: {result}")
+    
     time.sleep(3)
-    return "submitted" in str(result)
+    
+    # Check final URL
+    final_url = send_and_recv(ws, 5, "Runtime.evaluate", {
+        "expression": "window.location.href",
+        "returnByValue": True
+    })
+    print(f"  Final URL: {final_url}")
+    
+    ws.close()
+    return "newest" in str(final_url)
 
-
-def post_to_reddit(ws, subreddit, title, body):
-    """Post to Reddit"""
-    print(f"[Reddit] Navigating to r/{subreddit}...")
-    navigate(ws, f"https://old.reddit.com/r/{subreddit}/submit")
+def post_to_reddit(browser_ws, subreddit):
+    """Post to a single subreddit"""
+    print(f"\n--- r/{subreddit} ---")
+    
+    # Generate content
+    print("Generating content...")
+    content = generate_content("reddit", subreddit)
+    if not content:
+        print("Failed to generate content")
+        return False
+    
+    # Parse title and body
+    lines = content.strip().split("\n")
+    title = lines[0].replace("TITLE:", "").strip() if lines[0].startswith("TITLE:") else lines[0]
+    body = "\n".join(lines[2:]).strip() if len(lines) > 2 else content
+    
+    print(f"Title: {title[:80]}...")
+    print(f"Body: {body[:100]}...")
+    
+    # Create tab
+    print("Creating tab...")
+    tab_ws = create_tab(browser_ws, f"https://old.reddit.com/r/{subreddit}/submit")
+    if not tab_ws:
+        print("Failed to create tab")
+        return False
+    
+    ws = websocket.create_connection(tab_ws, timeout=30)
+    print(f"Connected to r/{subreddit}")
+    
+    # Wait for page to load
     time.sleep(3)
-
+    
     # Fill title
-    print("[Reddit] Filling title...")
-    send_and_recv(
-        ws,
-        2,
-        "Runtime.evaluate",
-        {
-            "expression": f"""
+    print("Filling title...")
+    result = send_and_recv(ws, 2, "Runtime.evaluate", {
+        "expression": f"""
         (function() {{
-            var title = document.querySelector('#title');
-            if (title) {{
-                title.value = {json.dumps(title)};
+            var el = document.querySelector('#title');
+            if (el) {{
+                el.value = {json.dumps(title)};
                 return 'filled';
             }}
             return 'not found';
         }})()
         """,
-            "returnByValue": True,
-        },
-    )
-    time.sleep(1)
-
+        "returnByValue": True
+    })
+    print(f"  Title: {result}")
+    
     # Fill body
-    print("[Reddit] Filling body...")
-    send_and_recv(
-        ws,
-        3,
-        "Runtime.evaluate",
-        {
-            "expression": f"""
+    print("Filling body...")
+    result = send_and_recv(ws, 3, "Runtime.evaluate", {
+        "expression": f"""
         (function() {{
-            var text = document.querySelector('#text');
-            if (text) {{
-                text.value = {json.dumps(body)};
+            var el = document.querySelector('#text');
+            if (el) {{
+                el.value = {json.dumps(body)};
                 return 'filled';
             }}
             return 'not found';
         }})()
         """,
-            "returnByValue": True,
-        },
-    )
-    time.sleep(1)
-
+        "returnByValue": True
+    })
+    print(f"  Body: {result}")
+    
     # Submit
-    print("[Reddit] Submitting...")
-    result = send_and_recv(
-        ws,
-        4,
-        "Runtime.evaluate",
-        {
-            "expression": """
+    print("Submitting...")
+    result = send_and_recv(ws, 4, "Runtime.evaluate", {
+        "expression": """
         (function() {
-            var btn = document.querySelector('button[type="submit"]');
+            var btn = document.querySelector('button[type="submit"], input[type="submit"]');
             if (btn) {
                 btn.click();
                 return 'submitted';
@@ -406,59 +386,75 @@ def post_to_reddit(ws, subreddit, title, body):
             return 'not found';
         })()
         """,
-            "returnByValue": True,
-        },
-    )
-
+        "returnByValue": True
+    })
+    print(f"  Result: {result}")
+    
     time.sleep(3)
-    return "submitted" in str(result)
+    
+    # Check URL
+    final_url = send_and_recv(ws, 5, "Runtime.evaluate", {
+        "expression": "window.location.href",
+        "returnByValue": True
+    })
+    print(f"  Final URL: {final_url}")
+    
+    ws.close()
+    return subreddit in str(final_url)
 
-
-def post_to_twitter(ws, text):
+def post_to_twitter(browser_ws):
     """Post to Twitter"""
-    print("[Twitter] Navigating to compose...")
-    navigate(ws, "https://x.com/compose/post")
+    print("\n" + "=" * 60)
+    print("TWITTER")
+    print("=" * 60)
+    
+    # Generate content
+    print("Generating tweet...")
+    tweet = generate_content("twitter")
+    if not tweet:
+        print("Failed to generate tweet")
+        return False
+    print(f"Tweet: {tweet}")
+    
+    # Create tab
+    print("Creating tab...")
+    tab_ws = create_tab(browser_ws, "https://x.com/compose/post")
+    if not tab_ws:
+        print("Failed to create tab")
+        return False
+    
+    ws = websocket.create_connection(tab_ws, timeout=30)
+    print("Connected to Twitter compose")
+    
+    # Wait for composer
     time.sleep(3)
-
+    
     # Focus textarea
-    print("[Twitter] Focusing textarea...")
-    send_and_recv(
-        ws,
-        2,
-        "Runtime.evaluate",
-        {
-            "expression": """
+    print("Focusing textarea...")
+    result = send_and_recv(ws, 2, "Runtime.evaluate", {
+        "expression": """
         (function() {
-            var box = document.querySelector('[data-testid="tweetTextarea_0"]');
-            if (box) {
-                box.focus();
+            var el = document.querySelector('[data-testid="tweetTextarea_0"]');
+            if (el) {
+                el.focus();
                 return 'focused';
             }
             return 'not found';
         })()
         """,
-            "returnByValue": True,
-        },
-    )
-    time.sleep(1)
-
+        "returnByValue": True
+    })
+    print(f"  Focus: {result}")
+    
     # Type content
-    print("[Twitter] Typing content...")
-    ws.send(
-        json.dumps(
-            {"id": 3, "method": "Input.insertText", "params": {"text": text[:280]}}
-        )
-    )
+    print("Typing tweet...")
+    ws.send(json.dumps({"id": 3, "method": "Input.insertText", "params": {"text": tweet[:280]}}))
     time.sleep(2)
-
+    
     # Submit
-    print("[Twitter] Submitting...")
-    result = send_and_recv(
-        ws,
-        4,
-        "Runtime.evaluate",
-        {
-            "expression": """
+    print("Submitting...")
+    result = send_and_recv(ws, 4, "Runtime.evaluate", {
+        "expression": """
         (function() {
             var btn = document.querySelector('[data-testid="tweetButton"]');
             if (btn) {
@@ -468,113 +464,58 @@ def post_to_twitter(ws, text):
             return 'not found';
         })()
         """,
-            "returnByValue": True,
-        },
-    )
-
-    time.sleep(3)
+        "returnByValue": True
+    })
+    print(f"  Result: {result}")
+    
+    ws.close()
     return "tweeted" in str(result)
 
-
 # ═══════════════════════════════════════════════════════════════
-# MAIN ORCHESTRATOR
+# MAIN
 # ═══════════════════════════════════════════════════════════════
-
 
 def main():
     print("=" * 60)
     print("AUTOMATED MULTI-PLATFORM POSTER")
+    print("Using MiMo v2.5 for content generation")
     print("=" * 60)
-    print()
-
-    # Check browser connection
-    ws_url = get_cdp_url()
-    if not ws_url:
-        print(
-            "ERROR: No browser connection. Start Edge with --remote-debugging-port=9222"
-        )
+    
+    # Get browser connection
+    browser_ws = get_browser_ws()
+    if not browser_ws:
+        print("ERROR: No browser connection. Start Edge with --remote-debugging-port=9222")
         return
-
-    print(f"Connected to browser: {ws_url[:50]}...")
-    ws = websocket.create_connection(ws_url, timeout=30)
-
+    
+    print(f"Connected to browser: {browser_ws[:50]}...")
+    
     results = {"hackernews": False, "reddit": [], "twitter": False}
-
-    # ═══════════════════════════════════════════════════════════
-    # 1. HACKER NEWS
-    # ═══════════════════════════════════════════════════════════
-    print("\n" + "=" * 60)
-    print("HACKER NEWS")
-    print("=" * 60)
-
-    hn_title = generate_content("hackernews", "title")
-    hn_body = generate_content("hackernews", "body")
-
-    if hn_title and hn_body:
-        print(f"Title: {hn_title}")
-        print(f"Body: {hn_body[:100]}...")
-        results["hackernews"] = post_to_hackernews(ws, hn_title, hn_body)
-    else:
-        print("Failed to generate HN content")
-
+    
+    # 1. Hacker News
+    results["hackernews"] = post_to_hackernews(browser_ws)
     time.sleep(5)
-
-    # ═══════════════════════════════════════════════════════════
-    # 2. REDDIT
-    # ═══════════════════════════════════════════════════════════
+    
+    # 2. Reddit (2 subreddits to avoid spam)
     print("\n" + "=" * 60)
     print("REDDIT")
     print("=" * 60)
-
-    for subreddit in PLATFORMS["reddit"]["subreddits"][:2]:  # Limit to 2 subreddits
-        print(f"\n--- r/{subreddit} ---")
-
-        reddit_title = generate_content("reddit", f"title for r/{subreddit}")
-        reddit_body = generate_content("reddit", f"body for r/{subreddit}")
-
-        if reddit_title and reddit_body:
-            print(f"Title: {reddit_title}")
-            print(f"Body: {reddit_body[:100]}...")
-            result = post_to_reddit(ws, subreddit, reddit_title, reddit_body)
-            results["reddit"].append({"subreddit": subreddit, "success": result})
-        else:
-            print(f"Failed to generate content for r/{subreddit}")
-
+    
+    for subreddit in REDDIT_SUBREDDITS[:2]:
+        result = post_to_reddit(browser_ws, subreddit)
+        results["reddit"].append({"subreddit": subreddit, "success": result})
         time.sleep(10)
-
-    # ═══════════════════════════════════════════════════════════
-    # 3. TWITTER
-    # ═══════════════════════════════════════════════════════════
-    print("\n" + "=" * 60)
-    print("TWITTER")
-    print("=" * 60)
-
-    twitter_thread = generate_content("twitter", "thread")
-
-    if twitter_thread:
-        # Extract first tweet from thread
-        tweets = twitter_thread.split("\n\n")
-        first_tweet = tweets[0] if tweets else twitter_thread[:280]
-        print(f"Tweet: {first_tweet[:100]}...")
-        results["twitter"] = post_to_twitter(ws, first_tweet)
-    else:
-        print("Failed to generate Twitter content")
-
-    # ═══════════════════════════════════════════════════════════
-    # SUMMARY
-    # ═══════════════════════════════════════════════════════════
+    
+    # 3. Twitter
+    results["twitter"] = post_to_twitter(browser_ws)
+    
+    # Summary
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
     print(f"Hacker News: {'POSTED' if results['hackernews'] else 'FAILED'}")
-    print(
-        f"Reddit: {len([r for r in results['reddit'] if r.get('success')])}/{len(results['reddit'])} posted"
-    )
+    print(f"Reddit: {len([r for r in results['reddit'] if r.get('success')])}/{len(results['reddit'])} posted")
     print(f"Twitter: {'POSTED' if results['twitter'] else 'FAILED'}")
     print("=" * 60)
-
-    ws.close()
-
 
 if __name__ == "__main__":
     main()

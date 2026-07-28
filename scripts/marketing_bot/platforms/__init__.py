@@ -10,6 +10,7 @@ from .linkedin import LinkedInPlatform
 from .bluesky import BlueskyPlatform
 from .hackernews import HackerNewsPlatform
 from .devto import DevToPlatform
+from .github import GitHubEngagement
 
 __all__ = [
     "RedditPlatform",
@@ -18,4 +19,5 @@ __all__ = [
     "BlueskyPlatform",
     "HackerNewsPlatform",
     "DevToPlatform",
+    "GitHubEngagement",
 ]

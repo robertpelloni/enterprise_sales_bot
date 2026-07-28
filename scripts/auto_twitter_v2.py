@@ -25,14 +25,46 @@ FALLBACK_TEMPLATES = {
 
 
 def get_cdp_url():
+    """Get a usable browser tab URL.
+    
+    Strategy: Use the first available about:blank or generic tab.
+    The caller will navigate to Twitter/search as needed.
+    """
     try:
         resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
         tabs = json.loads(resp.read())
+        # Priority 1: about:blank tabs (fresh, no interference)
         for tab in tabs:
-            if "edge://newtab" in tab.get("url", ""):
+            if tab.get("url", "") == "about:blank":
                 return tab.get("webSocketDebuggerUrl")
-        if tabs:
-            return tabs[0].get("webSocketDebuggerUrl")
+        # Priority 2: generic non-app tabs
+        for tab in tabs:
+            url = tab.get("url", "")
+            if url.startswith("https://") and "x.com" not in url and "twitter" not in url and "linkedin" not in url and "reddit" not in url:
+                return tab.get("webSocketDebuggerUrl")
+        # Last resort: create a new tab via browser-level WS
+        browser_resp = urllib.request.urlopen("http://localhost:9222/json/version", timeout=5)
+        browser_ws = json.loads(browser_resp.read()).get("webSocketDebuggerUrl")
+        if browser_ws:
+            ws = websocket.create_connection(browser_ws, timeout=15)
+            ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": "about:blank"}}))
+            time.sleep(2)
+            target_id = None
+            for _ in range(5):
+                try:
+                    ws.settimeout(3)
+                    d = json.loads(ws.recv())
+                    if d.get("id") == 1:
+                        target_id = d.get("result", {}).get("targetId")
+                        break
+                except Exception:
+                    continue
+            ws.close()
+            if target_id:
+                resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
+                for t in json.loads(resp.read()):
+                    if t.get("id") == target_id:
+                        return t.get("webSocketDebuggerUrl")
     except Exception:
         pass
     return None

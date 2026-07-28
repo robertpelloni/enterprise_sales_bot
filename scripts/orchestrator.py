@@ -3,6 +3,7 @@
 Marketing Orchestrator - Main orchestrator for all marketing agents
 Replaces autonomous_marketing.py with modular architecture
 """
+
 import threading
 import time
 import argparse
@@ -54,7 +55,7 @@ class MarketingOrchestrator:
             reddit_thread = threading.Thread(
                 target=run_reddit_loop,
                 args=(self.cdp, self.stats, lambda: self.running),
-                daemon=True
+                daemon=True,
             )
             reddit_thread.start()
             threads.append(reddit_thread)
@@ -63,7 +64,7 @@ class MarketingOrchestrator:
             twitter_thread = threading.Thread(
                 target=run_twitter_loop,
                 args=(self.cdp, self.stats, lambda: self.running),
-                daemon=True
+                daemon=True,
             )
             twitter_thread.start()
             threads.append(twitter_thread)
@@ -101,8 +102,12 @@ def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description="Marketing Orchestrator")
     parser.add_argument("--ws-url", help="WebSocket URL for CDP connection")
-    parser.add_argument("--reddit-only", action="store_true", help="Only run Reddit agent")
-    parser.add_argument("--twitter-only", action="store_true", help="Only run Twitter agent")
+    parser.add_argument(
+        "--reddit-only", action="store_true", help="Only run Reddit agent"
+    )
+    parser.add_argument(
+        "--twitter-only", action="store_true", help="Only run Twitter agent"
+    )
 
     args = parser.parse_args()
 
@@ -112,7 +117,9 @@ def main():
         print("No --ws-url provided, trying to detect browser...")
         ws_url = get_browser_ws()
         if not ws_url:
-            print("ERROR: Could not detect browser. Start Edge with --remote-debugging-port=9222")
+            print(
+                "ERROR: Could not detect browser. Start Edge with --remote-debugging-port=9222"
+            )
             sys.exit(1)
         print(f"Detected browser: {ws_url[:50]}...")
 

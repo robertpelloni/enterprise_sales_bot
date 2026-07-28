@@ -258,9 +258,19 @@ func main() {
 	responder := communication.NewRAGResponseGenerator(database, llmProvider)
 	strategy := communication.NewLearningSalesEngine(database, crmClient, llmProvider)
 
-	// 2h. Setup Email Sender — SMTP, Draft
+	// 2h. Setup Email Sender — Gmail OAuth2, SMTP, Draft
 	var emailSender communication.EmailSender
-	if cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" && !cfg.DryRun {
+	if os.Getenv("GOOGLE_CLIENT_ID") != "" && os.Getenv("GOOGLE_CLIENT_SECRET") != "" && os.Getenv("GOOGLE_REFRESH_TOKEN") != "" && !cfg.DryRun {
+		slog.Info("Email: Initializing Gmail OAuth2 sender")
+		oauth2Sender := communication.NewGmailOAuth2Sender()
+		if err := oauth2Sender.HealthCheck(context.Background()); err != nil {
+			slog.Warn("Email: Gmail OAuth2 health check failed, falling back to SMTP", "error", err)
+		} else {
+			emailSender = oauth2Sender
+			slog.Info("Email: Gmail OAuth2 sender configured successfully")
+		}
+	}
+	if emailSender == nil && cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" && !cfg.DryRun {
 		slog.Info(fmt.Sprintf("Email: Initializing SMTP sender via %s:%d as %s", cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername))
 		emailSender = communication.NewSMTPSender(communication.SMTPConfig{
 			Host:     cfg.SMTPHost,
@@ -270,14 +280,16 @@ func main() {
 			From:     cfg.SMTPFrom,
 			FromName: cfg.SMTPFromName,
 		})
-	} else if cfg.DryRun && cfg.IMAPHost != "" && cfg.IMAPUsername != "" && cfg.IMAPPassword != "" {
+	}
+	if emailSender == nil && cfg.DryRun && cfg.IMAPHost != "" && cfg.IMAPUsername != "" && cfg.IMAPPassword != "" {
 		slog.Info(fmt.Sprintf("Email: DRY RUN mode — saving drafts to %s via IMAP.", cfg.IMAPFolder))
 		emailSender = communication.NewDraftSender(cfg.IMAPHost, cfg.IMAPPort, cfg.IMAPUsername, cfg.IMAPPassword)
-	} else {
+	}
+	if emailSender == nil {
 		if cfg.DryRun {
 			slog.Info("Email: DRY RUN mode — no IMAP configured, emails will be logged only.")
 		} else {
-			slog.Info("Email: No SMTP configured — outbound emails will be logged but not sent.")
+			slog.Info("Email: No email sender configured — outbound emails will be logged but not sent.")
 		}
 		emailSender = &communication.NoopEmailSender{}
 	}

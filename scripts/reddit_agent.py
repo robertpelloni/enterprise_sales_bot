@@ -3,6 +3,7 @@
 Reddit Agent - Autonomous Reddit engagement
 Extracted from autonomous_marketing.py
 """
+
 import json
 import time
 import random
@@ -51,8 +52,24 @@ SUBREDDITS = [
 def is_opensource_context(title):
     """Determine if post is more open-source focused"""
     title_lower = title.lower()
-    oss_keywords = ["open source", "opensource", "free", "self-host", "github", "foss", "community"]
-    commercial_keywords = ["enterprise", "business", "company", "team", "production", "saas", "paid"]
+    oss_keywords = [
+        "open source",
+        "opensource",
+        "free",
+        "self-host",
+        "github",
+        "foss",
+        "community",
+    ]
+    commercial_keywords = [
+        "enterprise",
+        "business",
+        "company",
+        "team",
+        "production",
+        "saas",
+        "paid",
+    ]
     oss_score = sum(1 for kw in oss_keywords if kw in title_lower)
     commercial_score = sum(1 for kw in commercial_keywords if kw in title_lower)
     return oss_score >= commercial_score
@@ -61,12 +78,19 @@ def is_opensource_context(title):
 def categorize_post(title):
     """Categorize a post by its topic"""
     title_lower = title.lower()
-    
-    if any(term in title_lower for term in ["mcp", "model context protocol", "tool routing"]):
+
+    if any(
+        term in title_lower
+        for term in ["mcp", "model context protocol", "tool routing"]
+    ):
         return "mcp"
-    elif any(term in title_lower for term in ["rate limit", "429", "quota", "api limit"]):
+    elif any(
+        term in title_lower for term in ["rate limit", "429", "quota", "api limit"]
+    ):
         return "rate_limit"
-    elif any(term in title_lower for term in ["memory", "forget", "context", "remember"]):
+    elif any(
+        term in title_lower for term in ["memory", "forget", "context", "remember"]
+    ):
         return "memory"
     elif any(term in title_lower for term in ["agent", "framework", "orchestration"]):
         return "agent"
@@ -78,9 +102,9 @@ def generate_reply(post_title, post_content=""):
     """Generate an intelligent reply based on post content"""
     category = categorize_post(post_title)
     is_oss = is_opensource_context(post_title)
-    
+
     url = BRANDING["github"] if is_oss else BRANDING["url"]
-    
+
     replies = {
         "mcp": [
             f"Great question! Progressive tool routing can help here. Instead of loading all 50+ MCP server definitions into context, semantic vector search matches your prompt to the top 3 most relevant tools. This reduces token usage by ~60%. HyperNexus does this automatically. {url}",
@@ -108,7 +132,7 @@ def generate_reply(post_title, post_content=""):
             f"This resonates with what we're building at HyperNexus. The key insight is that AI infrastructure should be as well-engineered as the applications it powers. {url}",
         ],
     }
-    
+
     return random.choice(replies.get(category, replies["generic"]))
 
 
@@ -226,7 +250,9 @@ def run_reddit_loop(cdp, stats, running):
                     if result and "submitted" in str(result).lower():
                         replied_posts.add(post["id"])
                         stats["reddit_replies"] = stats.get("reddit_replies", 0) + 1
-                        print(f"[Reddit] Reply posted! Total: {stats['reddit_replies']}")
+                        print(
+                            f"[Reddit] Reply posted! Total: {stats['reddit_replies']}"
+                        )
                     else:
                         print(f"[Reddit] Failed to post reply: {result}")
                 else:

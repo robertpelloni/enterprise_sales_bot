@@ -3,6 +3,7 @@
 CDP Utilities - Shared Chrome DevTools Protocol utilities
 Extracted from autonomous_marketing.py
 """
+
 import websocket
 import json
 import time
@@ -108,6 +109,7 @@ class CDPSession:
 def get_browser_ws():
     """Get browser WebSocket URL from CDP"""
     import urllib.request
+
     try:
         resp = urllib.request.urlopen("http://localhost:9222/json/version", timeout=5)
         return json.loads(resp.read()).get("webSocketDebuggerUrl")
@@ -118,11 +120,13 @@ def get_browser_ws():
 def create_tab(browser_ws, url="about:blank"):
     """Create a new tab and return its WebSocket URL"""
     import urllib.request
-    
+
     ws = websocket.create_connection(browser_ws, timeout=15)
-    ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url}}))
+    ws.send(
+        json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": url}})
+    )
     time.sleep(2)
-    
+
     target_id = None
     for _ in range(5):
         try:
@@ -133,16 +137,16 @@ def create_tab(browser_ws, url="about:blank"):
                 break
         except Exception:
             continue
-    
+
     ws.close()
-    
+
     if target_id:
         resp = urllib.request.urlopen("http://localhost:9222/json", timeout=5)
         tabs = json.loads(resp.read())
         for t in tabs:
             if t.get("id") == target_id:
                 return t.get("webSocketDebuggerUrl")
-    
+
     return None
 
 
@@ -180,6 +184,7 @@ def navigate(ws, url, wait=7):
 def log(msg):
     """Log with timestamp"""
     import sys
+
     ts = time.strftime("%H:%M:%S")
     sys.stdout.buffer.write(f"[{ts}] {msg}\n".encode("utf-8"))
     sys.stdout.flush()

@@ -3,6 +3,7 @@
 Twitter Agent - Autonomous Twitter/X engagement
 Extracted from autonomous_marketing.py
 """
+
 import json
 import time
 import random
@@ -22,7 +23,7 @@ SEARCH_TERMS = [
 def categorize_tweet(text):
     """Categorize a tweet by its topic"""
     text_lower = text.lower()
-    
+
     if any(term in text_lower for term in ["mcp", "model context protocol"]):
         return "mcp"
     elif any(term in text_lower for term in ["rate limit", "429", "quota"]):
@@ -36,7 +37,7 @@ def categorize_tweet(text):
 def generate_reply(tweet_text):
     """Generate an intelligent reply to a tweet"""
     category = categorize_tweet(tweet_text)
-    
+
     replies = {
         "mcp": [
             "Progressive tool routing is the key! Instead of loading all MCP definitions, semantic search matches your prompt to the top 3 most relevant tools. 60% token reduction. HyperNexus does this automatically.",
@@ -59,7 +60,7 @@ def generate_reply(tweet_text):
             "The key is making AI tools work together seamlessly. Universal control plane is the answer.",
         ],
     }
-    
+
     return random.choice(replies.get(category, replies["generic"]))
 
 
@@ -201,10 +202,7 @@ def run_twitter_loop(cdp, stats, running):
             tweets = search_twitter(cdp, term)
 
             if tweets:
-                relevant_tweets = [
-                    t for t in tweets
-                    if t["id"] not in replied_tweets
-                ]
+                relevant_tweets = [t for t in tweets if t["id"] not in replied_tweets]
 
                 if relevant_tweets:
                     tweet = random.choice(relevant_tweets)
@@ -218,7 +216,9 @@ def run_twitter_loop(cdp, stats, running):
                     if result and "tweeted" in str(result).lower():
                         replied_tweets.add(tweet["id"])
                         stats["twitter_replies"] = stats.get("twitter_replies", 0) + 1
-                        print(f"[Twitter] Reply posted! Total: {stats['twitter_replies']}")
+                        print(
+                            f"[Twitter] Reply posted! Total: {stats['twitter_replies']}"
+                        )
                     else:
                         print(f"[Twitter] Failed to post reply: {result}")
                 else:

@@ -650,14 +650,58 @@ def send_email(
     to_email,
     subject,
     body,
-    from_email="pelloni.robert@gmail.com",
-    from_name="HyperNexus Team",
+    from_email="hypernexusofficialllc@gmail.com",
+    from_name="HyperNexus Official",
 ):
-    """Send email via SMTP"""
+    """Send email via Gmail OAuth2 or SMTP"""
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
+    import requests
+    import base64
 
+    # Try Gmail OAuth2 first
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    refresh_token = os.environ.get("GOOGLE_REFRESH_TOKEN", "")
+    
+    if client_id and client_secret and refresh_token:
+        try:
+            # Get access token
+            data = {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token"
+            }
+            resp = requests.post("https://oauth2.googleapis.com/token", data=data, timeout=10)
+            if resp.status_code == 200:
+                access_token = resp.json().get("access_token", "")
+                
+                # Build email
+                msg = MIMEMultipart()
+                msg["From"] = f"{from_name} <{from_email}>"
+                msg["To"] = to_email
+                msg["Subject"] = subject
+                msg.attach(MIMEText(body, "plain"))
+                
+                # Send via SMTP with XOAUTH2
+                server = smtplib.SMTP("smtp.gmail.com", 587, timeout=30)
+                server.starttls()
+                
+                # XOAUTH2 auth
+                auth_string = f"user={from_email}\x01auth=Bearer {access_token}\x01\x01"
+                auth_bytes = base64.b64encode(auth_string.encode()).decode()
+                server.docmd("AUTH", "XOAUTH2 " + auth_bytes)
+                
+                server.send_message(msg)
+                server.quit()
+                print(f"  [OAUTH2] Sent to {to_email}")
+                return True
+        except Exception as e:
+            print(f"  [OAUTH2] Failed: {e}, falling back to SMTP")
+    
+    # Fallback to SMTP with password
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
     smtp_user = os.environ.get("SMTP_USERNAME", from_email)
@@ -679,7 +723,7 @@ def send_email(
             server.login(smtp_user, smtp_pass)
             server.send_message(msg)
 
-        print(f"  Sent to {to_email}")
+        print(f"  [SMTP] Sent to {to_email}")
         return True
 
     except Exception as e:

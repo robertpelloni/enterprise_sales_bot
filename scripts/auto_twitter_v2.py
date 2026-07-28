@@ -26,7 +26,7 @@ FALLBACK_TEMPLATES = {
 
 def get_cdp_url():
     """Get a usable browser tab URL.
-    
+
     Strategy: Use the first available about:blank or generic tab.
     The caller will navigate to Twitter/search as needed.
     """
@@ -40,14 +40,30 @@ def get_cdp_url():
         # Priority 2: generic non-app tabs
         for tab in tabs:
             url = tab.get("url", "")
-            if url.startswith("https://") and "x.com" not in url and "twitter" not in url and "linkedin" not in url and "reddit" not in url:
+            if (
+                url.startswith("https://")
+                and "x.com" not in url
+                and "twitter" not in url
+                and "linkedin" not in url
+                and "reddit" not in url
+            ):
                 return tab.get("webSocketDebuggerUrl")
         # Last resort: create a new tab via browser-level WS
-        browser_resp = urllib.request.urlopen("http://localhost:9222/json/version", timeout=5)
+        browser_resp = urllib.request.urlopen(
+            "http://localhost:9222/json/version", timeout=5
+        )
         browser_ws = json.loads(browser_resp.read()).get("webSocketDebuggerUrl")
         if browser_ws:
             ws = websocket.create_connection(browser_ws, timeout=15)
-            ws.send(json.dumps({"id": 1, "method": "Target.createTarget", "params": {"url": "about:blank"}}))
+            ws.send(
+                json.dumps(
+                    {
+                        "id": 1,
+                        "method": "Target.createTarget",
+                        "params": {"url": "about:blank"},
+                    }
+                )
+            )
             time.sleep(2)
             target_id = None
             for _ in range(5):

@@ -43,7 +43,10 @@ class MarketingOrchestrator:
         """Connect to the browser."""
         self.browser_ws = get_browser_ws()
         if not self.browser_ws:
-            self.log("System", "ERROR: No browser connection. Start Edge with --remote-debugging-port=9222")
+            self.log(
+                "System",
+                "ERROR: No browser connection. Start Edge with --remote-debugging-port=9222",
+            )
             return False
         self.log("System", f"Connected to browser: {self.browser_ws[:50]}...")
         return True
@@ -71,11 +74,16 @@ class MarketingOrchestrator:
                 result = platform.run_cycle()
                 if result:
                     self.record_result(result)
-                    self.log("Reddit", f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...")
+                    self.log(
+                        "Reddit",
+                        f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...",
+                    )
                     post_count += 1
 
                 # Rate limiting
-                delay = random.randint(config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS)
+                delay = random.randint(
+                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                )
                 self.log("Reddit", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -106,11 +114,16 @@ class MarketingOrchestrator:
                 result = platform.run_cycle()
                 if result:
                     self.record_result(result)
-                    self.log("Twitter", f"Reply #{platform.reply_count}: {result.get('tweet_text', '')[:60]}...")
+                    self.log(
+                        "Twitter",
+                        f"Reply #{platform.reply_count}: {result.get('tweet_text', '')[:60]}...",
+                    )
                     reply_count += 1
 
                 # Rate limiting
-                delay = random.randint(config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS)
+                delay = random.randint(
+                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                )
                 self.log("Twitter", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -141,11 +154,16 @@ class MarketingOrchestrator:
                 result = platform.run_cycle()
                 if result:
                     self.record_result(result)
-                    self.log("LinkedIn", f"Comment #{platform.comment_count}: {result.get('post_text', '')[:60]}...")
+                    self.log(
+                        "LinkedIn",
+                        f"Comment #{platform.comment_count}: {result.get('post_text', '')[:60]}...",
+                    )
                     comment_count += 1
 
                 # Rate limiting
-                delay = random.randint(config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS)
+                delay = random.randint(
+                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                )
                 self.log("LinkedIn", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -178,7 +196,9 @@ class MarketingOrchestrator:
                     result = platform.run_cycle(content)
                     if result:
                         self.record_result(result)
-                        self.log("Bluesky", f"Post #{post_count + 1}: {content[:60]}...")
+                        self.log(
+                            "Bluesky", f"Post #{post_count + 1}: {content[:60]}..."
+                        )
                         post_count += 1
 
                 # Rate limiting (longer for Bluesky)
@@ -212,11 +232,16 @@ class MarketingOrchestrator:
                 result = platform.run_cycle()
                 if result:
                     self.record_result(result)
-                    self.log("HackerNews", f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...")
+                    self.log(
+                        "HackerNews",
+                        f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...",
+                    )
                     comment_count += 1
 
                 # Rate limiting
-                delay = random.randint(config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS)
+                delay = random.randint(
+                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                )
                 self.log("HackerNews", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):

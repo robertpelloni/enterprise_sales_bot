@@ -58,7 +58,9 @@ class LinkedInPlatform:
         if not self.ws:
             return []
 
-        search_url = f"https://www.linkedin.com/search/results/content/?keywords={query}"
+        search_url = (
+            f"https://www.linkedin.com/search/results/content/?keywords={query}"
+        )
         navigate(self.ws, search_url, wait=6)
 
         # Extract post data
@@ -120,7 +122,11 @@ class LinkedInPlatform:
         time.sleep(1)
 
         # Submit
-        if not click_element(self.ws, '.comments-comment-box__submit-button, button[type="submit"]', msg_id=12):
+        if not click_element(
+            self.ws,
+            '.comments-comment-box__submit-button, button[type="submit"]',
+            msg_id=12,
+        ):
             return False
 
         time.sleep(3)
@@ -134,7 +140,11 @@ class LinkedInPlatform:
         navigate(self.ws, config.LINKEDIN_COMPANY_URL, wait=5)
 
         # Find "Start a post" button
-        if not click_element(self.ws, 'button.share-box-feed-entry__trigger, [data-test-id="main-feed-tab-highlight__share-actions"]', msg_id=20):
+        if not click_element(
+            self.ws,
+            'button.share-box-feed-entry__trigger, [data-test-id="main-feed-tab-highlight__share-actions"]',
+            msg_id=20,
+        ):
             return False
 
         time.sleep(2)
@@ -150,7 +160,11 @@ class LinkedInPlatform:
         time.sleep(1)
 
         # Submit
-        if not click_element(self.ws, 'button.share-actions__primary-action, button[data-test-id="share-actions__primary-action"]', msg_id=22):
+        if not click_element(
+            self.ws,
+            'button.share-actions__primary-action, button[data-test-id="share-actions__primary-action"]',
+            msg_id=22,
+        ):
             return False
 
         time.sleep(3)

@@ -108,7 +108,7 @@ class RedditPlatform:
         comment_box = 'textarea[name="text"]'
         if not wait_for_element(self.ws, comment_box, timeout=10):
             # Try alternative selector
-            comment_box = '#commentreply textarea'
+            comment_box = "#commentreply textarea"
             if not wait_for_element(self.ws, comment_box, timeout=5):
                 return False
 
@@ -122,7 +122,7 @@ class RedditPlatform:
         submit_btn = 'button[type="submit"], input[type="submit"]'
         if not click_element(self.ws, submit_btn, msg_id=11):
             # Try alternative: save button
-            if not click_element(self.ws, '.save-button', msg_id=12):
+            if not click_element(self.ws, ".save-button", msg_id=12):
                 return False
 
         time.sleep(3)

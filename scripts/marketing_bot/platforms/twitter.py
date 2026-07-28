@@ -134,8 +134,7 @@ class TwitterPlatform:
         candidates = [
             t
             for t in tweets
-            if len(t.get("text", "")) > 30
-            and t.get("url", "") not in self.replied_urls
+            if len(t.get("text", "")) > 30 and t.get("url", "") not in self.replied_urls
         ]
 
         if not candidates:

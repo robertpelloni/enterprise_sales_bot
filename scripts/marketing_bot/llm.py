@@ -56,14 +56,34 @@ ABOUT YOUR PRODUCT:
 # ═══════════════════════════════════════════════════════════════
 
 _OSS_KEYWORDS = [
-    "open source", "opensource", "free", "self-host", "selfhost",
-    "github", "foss", "community", "hobbyist", "indie", "student",
-    "budget", "personal project", "side project",
+    "open source",
+    "opensource",
+    "free",
+    "self-host",
+    "selfhost",
+    "github",
+    "foss",
+    "community",
+    "hobbyist",
+    "indie",
+    "student",
+    "budget",
+    "personal project",
+    "side project",
 ]
 
 _COMMERCIAL_KEYWORDS = [
-    "enterprise", "business", "company", "team", "production",
-    "saas", "paid", "pricing", "professional", "startup", "scale",
+    "enterprise",
+    "business",
+    "company",
+    "team",
+    "production",
+    "saas",
+    "paid",
+    "pricing",
+    "professional",
+    "startup",
+    "scale",
 ]
 
 
@@ -85,6 +105,7 @@ def get_url_for_context(text: str) -> str:
 # ═══════════════════════════════════════════════════════════════
 # LLM API CALLS
 # ═══════════════════════════════════════════════════════════════
+
 
 def call_mimo(
     prompt: str,
@@ -129,6 +150,7 @@ def call_mimo(
 # ═══════════════════════════════════════════════════════════════
 # REPLY GENERATION
 # ═══════════════════════════════════════════════════════════════
+
 
 def generate_reply(
     post_title: str,
@@ -188,13 +210,18 @@ Article:"""
 # CONTENT ADAPTATION
 # ═══════════════════════════════════════════════════════════════
 
+
 def adapt_content_for_platform(
     content: str,
     platform: str,
     max_chars: Optional[int] = None,
 ) -> str:
     """Adapt content length and style for a specific platform."""
-    limit = max_chars if max_chars is not None else config.MAX_REPLY_LENGTH.get(platform, 500)
+    limit = (
+        max_chars
+        if max_chars is not None
+        else config.MAX_REPLY_LENGTH.get(platform, 500)
+    )
 
     if len(content) <= limit:
         return content

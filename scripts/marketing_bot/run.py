@@ -15,8 +15,10 @@ import argparse
 import sys
 import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add scripts directory to path for imports
+scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if scripts_dir not in sys.path:
+    sys.path.insert(0, scripts_dir)
 
 from marketing_bot.orchestrator import MarketingOrchestrator
 

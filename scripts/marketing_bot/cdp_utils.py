@@ -96,9 +96,7 @@ def navigate(ws: websocket.WebSocket, url: str, wait: int = 6) -> bool:
     """Navigate to URL and wait for load."""
     try:
         ws.send(
-            json.dumps(
-                {"id": 1, "method": "Page.navigate", "params": {"url": url}}
-            )
+            json.dumps({"id": 1, "method": "Page.navigate", "params": {"url": url}})
         )
         time.sleep(wait)
         return True

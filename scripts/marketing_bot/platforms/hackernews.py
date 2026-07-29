@@ -40,8 +40,36 @@ class HackerNewsPlatform:
         tab_ws = create_tab(self.browser_ws, "https://news.ycombinator.com/")
         if tab_ws:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
+            # Disable beforeunload dialogs
+            self._disable_beforeunload()
             return True
         return False
+
+    def _disable_beforeunload(self):
+        """Disable beforeunload event to prevent 'Leave site?' dialogs."""
+        if not self.ws:
+            return
+        try:
+            send_and_recv(
+                self.ws,
+                500,
+                "Runtime.evaluate",
+                {
+                    "expression": """
+                    (function() {
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            delete e.returnValue;
+                        }, true);
+                        window.onbeforeunload = null;
+                        return 'disabled';
+                    })()
+                    """,
+                    "returnByValue": True,
+                },
+            )
+        except Exception:
+            pass
 
     def disconnect(self):
         """Close the WebSocket connection."""

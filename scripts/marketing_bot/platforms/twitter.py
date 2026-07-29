@@ -39,8 +39,38 @@ class TwitterPlatform:
         tab_ws = create_tab(self.browser_ws, "https://x.com/explore")
         if tab_ws:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
+            # Disable beforeunload dialogs
+            self._disable_beforeunload()
             return True
         return False
+
+    def _disable_beforeunload(self):
+        """Disable beforeunload event to prevent 'Leave site?' dialogs."""
+        if not self.ws:
+            return
+        try:
+            send_and_recv(
+                self.ws,
+                500,
+                "Runtime.evaluate",
+                {
+                    "expression": """
+                    (function() {
+                        // Override beforeunload to prevent dialogs
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            delete e.returnValue;
+                        }, true);
+                        // Also override onbeforeunload property
+                        window.onbeforeunload = null;
+                        return 'disabled';
+                    })()
+                    """,
+                    "returnByValue": True,
+                },
+            )
+        except Exception:
+            pass
 
     def disconnect(self):
         """Close the WebSocket connection."""
@@ -51,10 +81,28 @@ class TwitterPlatform:
                 pass
             self.ws = None
 
+    def _dismiss_leave_dialog(self):
+        """Dismiss 'Leave site?' dialog if it appears."""
+        if not self.ws:
+            return
+        try:
+            # Accept any JavaScript dialog (beforeunload, etc.)
+            self.ws.send(json.dumps({
+                "id": 999,
+                "method": "Page.handleJavaScriptDialog",
+                "params": {"accept": True}
+            }))
+            time.sleep(0.5)
+        except Exception:
+            pass
+
     def _search_tweets(self, query: str) -> List[dict]:
         """Search for tweets matching a query."""
         if not self.ws:
             return []
+
+        # Dismiss any existing dialogs
+        self._dismiss_leave_dialog()
 
         search_url = f"https://x.com/search?q={query}&src=typed_query&f=live"
         navigate(self.ws, search_url, wait=6)
@@ -99,6 +147,9 @@ class TwitterPlatform:
         """Post a reply to a tweet."""
         if not self.ws:
             return False
+
+        # Dismiss any existing dialogs
+        self._dismiss_leave_dialog()
 
         navigate(self.ws, tweet_url, wait=5)
 

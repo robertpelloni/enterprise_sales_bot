@@ -48,6 +48,17 @@ URL_OPENSOURCE: str = "https://github.com/MDMAtk/TormentNexus"
 URL_OPENSOURCE_SITE: str = "https://tormentnexus.site"
 
 # ═══════════════════════════════════════════════════════════════
+# PLATFORM ENABLE/DISABLE FLAGS
+# ═══════════════════════════════════════════════════════════════
+
+# Set to False to disable a platform (code stays ready to re-enable)
+REDDIT_ENABLED: bool = False  # Disabled - posts getting removed
+TWITTER_ENABLED: bool = True
+LINKEDIN_ENABLED: bool = True
+BLUESKY_ENABLED: bool = True
+HACKERNEWS_ENABLED: bool = True
+
+# ═══════════════════════════════════════════════════════════════
 # REDDIT CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 

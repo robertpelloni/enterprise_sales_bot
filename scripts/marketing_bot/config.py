@@ -65,7 +65,7 @@ REDDIT_SUBREDDITS: List[str] = [
     "AI_Agents",
     "LLMDevs",
     "PromptEngineering",
-    "AItools",
+    "selfhosted",
     "devtools",
     "opensourceai",
 ]

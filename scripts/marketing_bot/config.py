@@ -52,7 +52,7 @@ URL_OPENSOURCE_SITE: str = "https://tormentnexus.site"
 # ═══════════════════════════════════════════════════════════════
 
 # Set to False to disable a platform (code stays ready to re-enable)
-REDDIT_ENABLED: bool = False  # Disabled - posts getting removed
+REDDIT_ENABLED: bool = True  # Re-enabled - no links in replies to avoid removal
 TWITTER_ENABLED: bool = True
 LINKEDIN_ENABLED: bool = True
 BLUESKY_ENABLED: bool = True

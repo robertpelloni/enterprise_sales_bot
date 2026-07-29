@@ -22,7 +22,6 @@ from ..cdp_utils import (
     wait_for_element,
     disable_beforeunload,
 )
-from ..llm import generate_reply, get_url_for_context
 
 
 class RedditPlatform:
@@ -156,17 +155,8 @@ class RedditPlatform:
 
         post = random.choice(candidates)
 
-        # Generate reply
-        reply = generate_reply(
-            post["title"],
-            platform="reddit",
-            max_chars=config.MAX_REPLY_LENGTH["reddit"],
-        )
-
-        if not reply:
-            # Fallback to template
-            url = get_url_for_context(post["title"])
-            reply = f"Progressive tool routing changes the game for AI dev efficiency. {url}"
+        # Generate reply (no links to avoid removal)
+        reply = self._generate_no_link_reply(post["title"])
 
         # Post reply
         success = self._post_reply(post["url"], reply)
@@ -184,6 +174,49 @@ class RedditPlatform:
             }
 
         return None
+
+    def _generate_no_link_reply(self, post_title: str) -> str:
+        """Generate a helpful reply without any links."""
+        post_lower = post_title.lower()
+
+        # Template replies based on topic (no links)
+        templates = {
+            "mcp": [
+                "Progressive tool routing is key for MCP management - semantic search matches your prompt to the top 3 most relevant tools instead of loading all definitions. Cuts token usage significantly.",
+                "The biggest challenge with MCP servers is context bloat. Progressive routing dynamically selects only the tools you need per task. Game changer for efficiency.",
+                "MCP servers are powerful but need smart management. Progressive routing, health monitoring, and failover handling make them production-ready.",
+            ],
+            "rate_limit": [
+                "The Waterfall Pattern solves rate limits: Primary API -> Secondary API -> Local models -> Queue. When one provider fails, the next picks up automatically.",
+                "Transparent failover is the answer. When one provider rate limits, the next picks up automatically. Your agent shouldn't even notice.",
+            ],
+            "memory": [
+                "Dual-tier memory architecture works well: L1 for session scratchpad (ephemeral, fast), L2 for permanent semantic storage with vector search.",
+                "Persistent memory across sessions is crucial. Vector search by meaning, not keywords, makes it actually useful.",
+            ],
+            "agent": [
+                "Progressive tool routing + persistent memory + multi-model failover is the combo that makes AI agents reliable.",
+                "The key ingredients for reliable agents: right tools at the right time, memory that persists, and failover when providers go down.",
+            ],
+            "generic": [
+                "Progressive tool routing changes the game - semantically match tasks to the top 3 tools instead of dumping everything in context.",
+                "The biggest win for AI dev efficiency is only loading the tools your agent actually needs for each task.",
+            ],
+        }
+
+        # Select category
+        if "mcp" in post_lower or "tool" in post_lower:
+            category = "mcp"
+        elif "rate limit" in post_lower or "429" in post_lower:
+            category = "rate_limit"
+        elif "memory" in post_lower or "remember" in post_lower:
+            category = "memory"
+        elif "agent" in post_lower:
+            category = "agent"
+        else:
+            category = "generic"
+
+        return random.choice(templates[category])
 
     def post_content(self, subreddit: str, title: str, body: str) -> bool:
         """Create a new post in a subreddit."""

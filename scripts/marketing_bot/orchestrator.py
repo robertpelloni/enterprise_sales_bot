@@ -274,15 +274,15 @@ class MarketingOrchestrator:
         if self.mode == "comments":
             # Comment/engagement mode - check enabled flags
             agents = []
-            if getattr(config, 'REDDIT_ENABLED', True):
+            if getattr(config, "REDDIT_ENABLED", True):
                 agents.append(("Reddit", self.run_reddit_agent))
-            if getattr(config, 'TWITTER_ENABLED', True):
+            if getattr(config, "TWITTER_ENABLED", True):
                 agents.append(("Twitter", self.run_twitter_agent))
-            if getattr(config, 'LINKEDIN_ENABLED', True):
+            if getattr(config, "LINKEDIN_ENABLED", True):
                 agents.append(("LinkedIn", self.run_linkedin_agent))
-            if getattr(config, 'BLUESKY_ENABLED', True):
+            if getattr(config, "BLUESKY_ENABLED", True):
                 agents.append(("Bluesky", self.run_bluesky_agent))
-            if getattr(config, 'HACKERNEWS_ENABLED', True):
+            if getattr(config, "HACKERNEWS_ENABLED", True):
                 agents.append(("HackerNews", self.run_hackernews_agent))
         else:
             # Article mode (future)

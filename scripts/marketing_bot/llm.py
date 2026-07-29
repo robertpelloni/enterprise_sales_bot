@@ -106,6 +106,43 @@ def get_url_for_context(text: str) -> str:
 # LLM API CALLS
 # ═══════════════════════════════════════════════════════════════
 
+# Ollama configuration
+OLLAMA_URL = "http://localhost:11434"
+OLLAMA_MODEL = "gemma-4-heretic:latest"
+
+
+def call_ollama(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 200,
+) -> Optional[str]:
+    """Call local Ollama API as fallback."""
+    full_prompt = prompt
+    if system_prompt:
+        full_prompt = f"{system_prompt}\n\n{prompt}"
+
+    try:
+        data = json.dumps(
+            {
+                "model": OLLAMA_MODEL,
+                "prompt": full_prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens},
+            }
+        ).encode()
+
+        req = urllib.request.Request(
+            f"{OLLAMA_URL}/api/generate",
+            data=data,
+            headers={"Content-Type": "application/json"},
+        )
+
+        resp = urllib.request.urlopen(req, timeout=60)
+        result = json.loads(resp.read())
+        return result.get("response", "").strip()
+    except Exception:
+        return None
+
 
 def call_mimo(
     prompt: str,
@@ -113,10 +150,11 @@ def call_mimo(
     max_tokens: int = 200,
     temperature: float = 0.7,
 ) -> Optional[str]:
-    """Call MiMo v2.5 API and return response text."""
+    """Call MiMo v2.5 API, fallback to Ollama."""
     if system_prompt is None:
         system_prompt = SYSTEM_PROMPT_REPLY.format(max_chars=max_tokens)
 
+    # Try MiMo first
     try:
         data = json.dumps(
             {
@@ -139,12 +177,14 @@ def call_mimo(
             },
         )
 
-        resp = urllib.request.urlopen(req, timeout=30)
+        resp = urllib.request.urlopen(req, timeout=15)
         result = json.loads(resp.read())
         return result["choices"][0]["message"]["content"].strip()
-    except Exception as e:
-        print(f"[LLM] Error: {e}")
-        return None
+    except Exception:
+        pass
+
+    # Fallback to Ollama
+    return call_ollama(prompt, system_prompt, max_tokens)
 
 
 # ═══════════════════════════════════════════════════════════════

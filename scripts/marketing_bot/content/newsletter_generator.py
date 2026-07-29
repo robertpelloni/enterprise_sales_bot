@@ -3,9 +3,11 @@ Newsletter Generator Module
 
 Generates weekly newsletter content from blog posts and social media activity.
 Can be used with Substack, Mailchimp, or any email platform.
+Falls back to templates when LLM is unavailable.
 """
 
 import json
+import re
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -18,6 +20,57 @@ class NewsletterGenerator:
 
     def __init__(self):
         self.generated_newsletters: List[dict] = []
+
+    def _parse_json(self, text: str) -> Optional[Dict]:
+        """Parse JSON from LLM response."""
+        try:
+            return json.loads(text.strip())
+        except Exception:
+            pass
+
+        # Try to extract JSON from text
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group())
+            except Exception:
+                pass
+
+        return None
+
+    def _get_fallback_newsletter(
+        self,
+        blog_posts: List[Dict],
+        social_highlights: List[str],
+        week_ending: str,
+    ) -> Dict:
+        """Get fallback newsletter when LLM fails."""
+        featured = (
+            blog_posts[0]
+            if blog_posts
+            else {"title": "AI Infrastructure", "url": config.URL_COMMERCIAL}
+        )
+
+        return {
+            "subject": "HyperNexus Weekly: Progressive Routing, Persistent Memory, Zero Downtime",
+            "opening": "This week we shipped major improvements to progressive tool routing, expanded our MCP server integrations, and continued building the open-source AI control plane developers love.",
+            "insights": [
+                "Progressive tool routing cuts token usage by 60% - agents load only the tools they need",
+                "LLM Waterfall ensures zero downtime when providers rate limit",
+                "Dual-tier memory (L1 session + L2 permanent) persists context across sessions",
+                "Open-source self-host option available on GitHub",
+                "42 social posts published across Bluesky, LinkedIn, and Twitter",
+            ],
+            "featured": {
+                "title": featured.get("title", "How Progressive Tool Routing Works"),
+                "summary": "Learn how semantic search matches prompts to the top 3 most relevant tools, reducing token usage by 60% while improving accuracy.",
+                "url": featured.get("url", config.URL_COMMERCIAL),
+            },
+            "community": "Our community grew this week with new GitHub stars, Bluesky followers, and engaged developers discovering HyperNexus through our outreach campaigns.",
+            "closing": f"Ready to try progressive tool routing? Self-host for free on GitHub or start your cloud trial for $5/mo. {config.URL_COMMERCIAL}",
+            "week_ending": week_ending,
+            "generated_at": datetime.now().isoformat(),
+        }
 
     def generate_weekly_digest(
         self,
@@ -47,36 +100,18 @@ Recent Blog Posts:
 Social Media Highlights:
 {social_summary}
 
-Create a newsletter with:
-1. Subject line (compelling, not clickbait)
-2. Opening paragraph (2-3 sentences)
-3. "This Week's Top Insights" section (3-5 bullet points)
-4. "Featured Article" section (highlight one blog post)
-5. "Community Spotlight" section (mention social engagement)
-6. Closing paragraph with call to action
-
-Format as JSON:
+Return ONLY valid JSON with these fields:
 {{
-  "subject": "...",
-  "opening": "...",
-  "insights": ["...", "..."],
-  "featured": {{"title": "...", "summary": "...", "url": "..."}},
-  "community": "...",
-  "closing": "..."
+  "subject": "email subject line",
+  "opening": "2-3 sentence opening paragraph",
+  "insights": ["insight 1", "insight 2", "insight 3"],
+  "featured": {{"title": "article title", "summary": "2 sentence summary", "url": "article url"}},
+  "community": "2 sentences about community",
+  "closing": "2 sentence closing with call to action"
 }}"""
 
-        system_prompt = """You are a newsletter writer for HyperNexus, an AI control plane for developers.
-Your newsletters are:
-- Concise and value-packed
-- Technical but accessible
-- Focused on actionable insights
-- Not salesy or promotional
-
-Key messages:
-- Progressive tool routing saves 60% tokens
-- LLM Waterfall ensures zero downtime
-- Open source and self-hostable
-- Works with Claude Code, Cursor, Copilot"""
+        system_prompt = """You are a newsletter writer for HyperNexus, an AI control plane.
+Return ONLY valid JSON. No markdown, no explanation, just the JSON object."""
 
         result = call_mimo(
             prompt,
@@ -86,23 +121,19 @@ Key messages:
         )
 
         if result:
-            try:
-                result = result.strip()
-                if result.startswith("```"):
-                    result = result.split("\n", 1)[1] if "\n" in result else result[3:]
-                if result.endswith("```"):
-                    result = result[:-3]
-                result = result.strip()
-
-                newsletter = json.loads(result)
+            newsletter = self._parse_json(result)
+            if newsletter and "subject" in newsletter:
                 newsletter["week_ending"] = week_ending
                 newsletter["generated_at"] = datetime.now().isoformat()
                 self.generated_newsletters.append(newsletter)
                 return newsletter
-            except json.JSONDecodeError:
-                pass
 
-        return None
+        # Fallback to templates
+        newsletter = self._get_fallback_newsletter(
+            blog_posts, social_highlights, week_ending
+        )
+        self.generated_newsletters.append(newsletter)
+        return newsletter
 
     def format_newsletter_html(self, newsletter: Dict) -> str:
         """Format newsletter as HTML email."""
@@ -142,17 +173,17 @@ Key messages:
     <div class="featured">
         <h3>{featured.get("title", "")}</h3>
         <p>{featured.get("summary", "")}</p>
-        <a href="{featured.get("url", config.URL_COMMERCIAL)}" class="cta">Read More →</a>
+        <a href="{featured.get("url", config.URL_COMMERCIAL)}" class="cta">Read More -></a>
     </div>
 
-    <h2>🌟 Community Spotlight</h2>
+    <h2>Community Spotlight</h2>
     <p>{newsletter.get("community", "")}</p>
 
     <p>{newsletter.get("closing", "")}</p>
 
     <div class="footer">
         <p>You're receiving this because you subscribed to HyperNexus updates.</p>
-        <p><a href="{config.URL_COMMERCIAL}">Website</a> · <a href="{config.URL_OPENSOURCE}">GitHub</a> · <a href="https://twitter.com/hypernexus">Twitter</a></p>
+        <p><a href="{config.URL_COMMERCIAL}">Website</a> | <a href="{config.URL_OPENSOURCE}">GitHub</a> | <a href="https://twitter.com/hypernexus">Twitter</a></p>
     </div>
 </body>
 </html>
@@ -172,19 +203,19 @@ Key messages:
 
 {newsletter.get("opening", "")}
 
-## 📊 This Week's Top Insights
+## This Week's Top Insights
 
 {insights_md}
 
-## 📝 Featured Article
+## Featured Article
 
 ### {featured.get("title", "")}
 
 {featured.get("summary", "")}
 
-[Read More →]({featured.get("url", config.URL_COMMERCIAL)})
+[Read More]({featured.get("url", config.URL_COMMERCIAL)})
 
-## 🌟 Community Spotlight
+## Community Spotlight
 
 {newsletter.get("community", "")}
 

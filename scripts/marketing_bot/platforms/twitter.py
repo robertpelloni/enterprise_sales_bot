@@ -19,6 +19,8 @@ from ..cdp_utils import (
     send_and_recv,
     type_text,
     wait_for_element,
+    handle_dialog,
+    disable_beforeunload,
 )
 from ..llm import generate_reply, get_url_for_context
 
@@ -46,31 +48,8 @@ class TwitterPlatform:
 
     def _disable_beforeunload(self):
         """Disable beforeunload event to prevent 'Leave site?' dialogs."""
-        if not self.ws:
-            return
-        try:
-            send_and_recv(
-                self.ws,
-                500,
-                "Runtime.evaluate",
-                {
-                    "expression": """
-                    (function() {
-                        // Override beforeunload to prevent dialogs
-                        window.addEventListener('beforeunload', function(e) {
-                            e.preventDefault();
-                            delete e.returnValue;
-                        }, true);
-                        // Also override onbeforeunload property
-                        window.onbeforeunload = null;
-                        return 'disabled';
-                    })()
-                    """,
-                    "returnByValue": True,
-                },
-            )
-        except Exception:
-            pass
+        if self.ws:
+            disable_beforeunload(self.ws)
 
     def disconnect(self):
         """Close the WebSocket connection."""
@@ -83,18 +62,8 @@ class TwitterPlatform:
 
     def _dismiss_leave_dialog(self):
         """Dismiss 'Leave site?' dialog if it appears."""
-        if not self.ws:
-            return
-        try:
-            # Accept any JavaScript dialog (beforeunload, etc.)
-            self.ws.send(json.dumps({
-                "id": 999,
-                "method": "Page.handleJavaScriptDialog",
-                "params": {"accept": True}
-            }))
-            time.sleep(0.5)
-        except Exception:
-            pass
+        if self.ws:
+            handle_dialog(self.ws, accept=True)
 
     def _search_tweets(self, query: str) -> List[dict]:
         """Search for tweets matching a query."""

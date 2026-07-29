@@ -217,3 +217,46 @@ def get_page_text(
         },
     )
     return result or ""
+
+
+def handle_dialog(
+    ws: websocket.WebSocket, accept: bool = True, msg_id: int = 600
+) -> bool:
+    """Handle a JavaScript dialog (alert, confirm, prompt, beforeunload)."""
+    try:
+        ws.send(
+            json.dumps(
+                {
+                    "id": msg_id,
+                    "method": "Page.handleJavaScriptDialog",
+                    "params": {"accept": accept},
+                }
+            )
+        )
+        time.sleep(0.5)
+        return True
+    except Exception:
+        return False
+
+
+def disable_beforeunload(ws: websocket.WebSocket, msg_id: int = 700) -> bool:
+    """Disable beforeunload event to prevent 'Leave site?' dialogs."""
+    result = send_and_recv(
+        ws,
+        msg_id,
+        "Runtime.evaluate",
+        {
+            "expression": """
+            (function() {
+                window.addEventListener('beforeunload', function(e) {
+                    e.preventDefault();
+                    delete e.returnValue;
+                }, true);
+                window.onbeforeunload = null;
+                return 'disabled';
+            })()
+            """,
+            "returnByValue": True,
+        },
+    )
+    return result == "disabled"

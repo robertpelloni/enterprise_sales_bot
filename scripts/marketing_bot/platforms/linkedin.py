@@ -20,6 +20,7 @@ from ..cdp_utils import (
     send_and_recv,
     type_text,
     wait_for_element,
+    disable_beforeunload,
 )
 from ..llm import generate_reply, get_url_for_context
 
@@ -48,29 +49,8 @@ class LinkedInPlatform:
 
     def _disable_beforeunload(self):
         """Disable beforeunload event to prevent 'Leave site?' dialogs."""
-        if not self.ws:
-            return
-        try:
-            send_and_recv(
-                self.ws,
-                500,
-                "Runtime.evaluate",
-                {
-                    "expression": """
-                    (function() {
-                        window.addEventListener('beforeunload', function(e) {
-                            e.preventDefault();
-                            delete e.returnValue;
-                        }, true);
-                        window.onbeforeunload = null;
-                        return 'disabled';
-                    })()
-                    """,
-                    "returnByValue": True,
-                },
-            )
-        except Exception:
-            pass
+        if self.ws:
+            disable_beforeunload(self.ws)
 
     def disconnect(self):
         """Close the WebSocket connection."""

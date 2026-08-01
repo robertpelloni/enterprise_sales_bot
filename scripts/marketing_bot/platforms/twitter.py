@@ -20,7 +20,6 @@ from ..cdp_utils import (
     type_text,
     wait_for_element,
     handle_dialog,
-    disable_beforeunload,
 )
 from ..llm import generate_reply, get_url_for_context
 
@@ -35,29 +34,20 @@ class TwitterPlatform:
         self.ws: Optional[websocket.WebSocket] = None
         self.replied_urls: set = set()
         self.reply_count: int = 0
-        self._dialog_watcher_running = False
 
     def connect(self) -> bool:
         """Create a new browser tab for Twitter."""
         tab_ws = create_tab(self.browser_ws, "https://x.com/explore")
         if tab_ws:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
-            # Disable beforeunload dialogs
-            self._disable_beforeunload()
-            # Additional dialog prevention
+            # Disable beforeunload dialogs via JS injection (no watcher thread -
+            # a separate thread reading the same WebSocket steals responses)
             self._inject_dialog_blocker()
-            # Start dialog watcher thread
-            self._start_dialog_watcher()
             return True
         return False
 
-    def _disable_beforeunload(self):
-        """Disable beforeunload event to prevent 'Leave site?' dialogs."""
-        if self.ws:
-            disable_beforeunload(self.ws)
-
     def _inject_dialog_blocker(self):
-        """Inject JavaScript to block all beforeunload dialogs."""
+        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs."""
         if not self.ws:
             return
         try:
@@ -94,7 +84,6 @@ class TwitterPlatform:
 
     def disconnect(self):
         """Close the WebSocket connection."""
-        self._dialog_watcher_running = False
         if self.ws:
             try:
                 self.ws.close()
@@ -106,59 +95,6 @@ class TwitterPlatform:
         """Dismiss 'Leave site?' dialog if it appears."""
         if self.ws:
             handle_dialog(self.ws, accept=True)
-
-    def _start_dialog_watcher(self):
-        """Start a background thread that auto-accepts any JavaScript dialogs."""
-        if self._dialog_watcher_running or not self.ws:
-            return
-        self._dialog_watcher_running = True
-
-        ws_ref = self.ws
-
-        def watcher():
-            try:
-                # Enable dialog events
-                ws_ref.send(
-                    json.dumps(
-                        {
-                            "id": 900,
-                            "method": "Page.enable",
-                        }
-                    )
-                )
-                time.sleep(0.5)
-
-                while self._dialog_watcher_running and self.ws:
-                    try:
-                        self.ws.settimeout(1)
-                        data = json.loads(self.ws.recv())
-                        # Auto-accept any dialog event
-                        if data.get("method") == "Page.javascriptDialogOpening":
-                            try:
-                                self.ws.send(
-                                    json.dumps(
-                                        {
-                                            "id": 901,
-                                            "method": "Page.handleJavaScriptDialog",
-                                            "params": {"accept": True},
-                                        }
-                                    )
-                                )
-                            except Exception:
-                                pass
-                    except websocket.WebSocketTimeoutException:
-                        continue
-                    except Exception:
-                        break
-            except Exception:
-                pass
-            finally:
-                self._dialog_watcher_running = False
-
-        import threading
-
-        t = threading.Thread(target=watcher, name="twitter-dialog-watcher", daemon=True)
-        t.start()
 
     def _search_tweets(self, query: str) -> List[dict]:
         """Search for tweets matching a query."""

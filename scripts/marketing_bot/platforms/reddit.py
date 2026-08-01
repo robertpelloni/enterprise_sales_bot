@@ -20,7 +20,6 @@ from ..cdp_utils import (
     navigate,
     send_and_recv,
     wait_for_element,
-    disable_beforeunload,
 )
 
 
@@ -35,70 +34,56 @@ class RedditPlatform:
         self.replied_urls: set = set()
         self.post_count: int = 0
         self.comment_count: int = 0
-        self._dialog_watcher_running = False
 
     def connect(self) -> bool:
         """Create a new browser tab for Reddit."""
         tab_ws = create_tab(self.browser_ws, "https://old.reddit.com/")
         if tab_ws:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
-            # Disable beforeunload dialogs
-            self._disable_beforeunload()
-            # Start dialog watcher (Reddit comment forms use warn-on-unload)
-            self._start_dialog_watcher()
+            # Disable beforeunload dialogs via JS injection (no watcher thread -
+            # a separate thread reading the same WebSocket steals responses)
+            self._inject_dialog_blocker()
             return True
         return False
 
-    def _disable_beforeunload(self):
-        """Disable beforeunload event to prevent 'Leave site?' dialogs."""
-        if self.ws:
-            disable_beforeunload(self.ws)
-
-    def _start_dialog_watcher(self):
-        """Start a background thread that auto-accepts any JavaScript dialogs."""
-        if self._dialog_watcher_running or not self.ws:
+    def _inject_dialog_blocker(self):
+        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs."""
+        if not self.ws:
             return
-        self._dialog_watcher_running = True
-
-        ws_ref = self.ws
-
-        def watcher():
-            try:
-                ws_ref.send(json.dumps({
-                    "id": 900,
-                    "method": "Page.enable",
-                }))
-                time.sleep(0.5)
-
-                while self._dialog_watcher_running and self.ws:
-                    try:
-                        self.ws.settimeout(1)
-                        data = json.loads(self.ws.recv())
-                        if data.get("method") == "Page.javascriptDialogOpening":
-                            try:
-                                self.ws.send(json.dumps({
-                                    "id": 901,
-                                    "method": "Page.handleJavaScriptDialog",
-                                    "params": {"accept": True},
-                                }))
-                            except Exception:
-                                pass
-                    except websocket.WebSocketTimeoutException:
-                        continue
-                    except Exception:
-                        break
-            except Exception:
-                pass
-            finally:
-                self._dialog_watcher_running = False
-
-        import threading
-        t = threading.Thread(target=watcher, name="reddit-dialog-watcher", daemon=True)
-        t.start()
+        try:
+            send_and_recv(
+                self.ws,
+                500,
+                "Runtime.evaluate",
+                {
+                    "expression": """
+                    (function() {
+                        // Override beforeunload to prevent dialogs
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            delete e.returnValue;
+                            return '';
+                        }, true);
+                        // Override onbeforeunload
+                        Object.defineProperty(window, 'onbeforeunload', {
+                            set: function() {},
+                            get: function() { return null; }
+                        });
+                        // Override alert/confirm/prompt
+                        window.alert = function() {};
+                        window.confirm = function() { return true; };
+                        window.prompt = function() { return ''; };
+                        return 'dialogs blocked';
+                    })()
+                    """,
+                    "returnByValue": True,
+                },
+            )
+        except Exception:
+            pass
 
     def disconnect(self):
         """Close the WebSocket connection."""
-        self._dialog_watcher_running = False
         if self.ws:
             try:
                 self.ws.close()

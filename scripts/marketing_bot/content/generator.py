@@ -7,7 +7,12 @@ Generates platform-specific content using MiMo v2.5 LLM.
 import random
 from typing import Optional
 
-from ..llm import generate_reply, generate_article_content, adapt_content_for_platform
+from ..llm import (
+    generate_reply,
+    generate_article_content,
+    adapt_content_for_platform,
+    get_url_for_context,
+)
 from .templates import FALLBACK_TEMPLATES
 
 
@@ -69,4 +74,6 @@ class ContentGenerator:
         template = random.choice(available)
         self.used_templates[key].append(template)
 
-        return template
+        # Substitute URL placeholder (the templates use {url})
+        url = get_url_for_context(post_text)
+        return template.replace("{url}", url)

@@ -118,10 +118,14 @@ class TwitterPlatform:
         def watcher():
             try:
                 # Enable dialog events
-                ws_ref.send(json.dumps({
-                    "id": 900,
-                    "method": "Page.enable",
-                }))
+                ws_ref.send(
+                    json.dumps(
+                        {
+                            "id": 900,
+                            "method": "Page.enable",
+                        }
+                    )
+                )
                 time.sleep(0.5)
 
                 while self._dialog_watcher_running and self.ws:
@@ -131,11 +135,15 @@ class TwitterPlatform:
                         # Auto-accept any dialog event
                         if data.get("method") == "Page.javascriptDialogOpening":
                             try:
-                                self.ws.send(json.dumps({
-                                    "id": 901,
-                                    "method": "Page.handleJavaScriptDialog",
-                                    "params": {"accept": True},
-                                }))
+                                self.ws.send(
+                                    json.dumps(
+                                        {
+                                            "id": 901,
+                                            "method": "Page.handleJavaScriptDialog",
+                                            "params": {"accept": True},
+                                        }
+                                    )
+                                )
                             except Exception:
                                 pass
                     except websocket.WebSocketTimeoutException:
@@ -148,6 +156,7 @@ class TwitterPlatform:
                 self._dialog_watcher_running = False
 
         import threading
+
         t = threading.Thread(target=watcher, name="twitter-dialog-watcher", daemon=True)
         t.start()
 

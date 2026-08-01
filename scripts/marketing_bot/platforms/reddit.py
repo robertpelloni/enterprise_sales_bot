@@ -35,6 +35,7 @@ class RedditPlatform:
         self.replied_urls: set = set()
         self.post_count: int = 0
         self.comment_count: int = 0
+        self._dialog_watcher_running = False
 
     def connect(self) -> bool:
         """Create a new browser tab for Reddit."""
@@ -43,6 +44,8 @@ class RedditPlatform:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
             # Disable beforeunload dialogs
             self._disable_beforeunload()
+            # Start dialog watcher (Reddit comment forms use warn-on-unload)
+            self._start_dialog_watcher()
             return True
         return False
 
@@ -51,8 +54,51 @@ class RedditPlatform:
         if self.ws:
             disable_beforeunload(self.ws)
 
+    def _start_dialog_watcher(self):
+        """Start a background thread that auto-accepts any JavaScript dialogs."""
+        if self._dialog_watcher_running or not self.ws:
+            return
+        self._dialog_watcher_running = True
+
+        ws_ref = self.ws
+
+        def watcher():
+            try:
+                ws_ref.send(json.dumps({
+                    "id": 900,
+                    "method": "Page.enable",
+                }))
+                time.sleep(0.5)
+
+                while self._dialog_watcher_running and self.ws:
+                    try:
+                        self.ws.settimeout(1)
+                        data = json.loads(self.ws.recv())
+                        if data.get("method") == "Page.javascriptDialogOpening":
+                            try:
+                                self.ws.send(json.dumps({
+                                    "id": 901,
+                                    "method": "Page.handleJavaScriptDialog",
+                                    "params": {"accept": True},
+                                }))
+                            except Exception:
+                                pass
+                    except websocket.WebSocketTimeoutException:
+                        continue
+                    except Exception:
+                        break
+            except Exception:
+                pass
+            finally:
+                self._dialog_watcher_running = False
+
+        import threading
+        t = threading.Thread(target=watcher, name="reddit-dialog-watcher", daemon=True)
+        t.start()
+
     def disconnect(self):
         """Close the WebSocket connection."""
+        self._dialog_watcher_running = False
         if self.ws:
             try:
                 self.ws.close()
@@ -125,15 +171,47 @@ class RedditPlatform:
 
         time.sleep(1)
 
-        # Submit the comment
-        submit_btn = 'button[type="submit"], input[type="submit"]'
+        # Submit the comment - use the SPECIFIC save button (not generic submit selector,
+        # which can match header buttons like "GET NEW REDDIT")
+        submit_btn = ".commentarea button.save"
         if not click_element(self.ws, submit_btn, msg_id=11):
-            # Try alternative: save button
-            if not click_element(self.ws, ".save-button", msg_id=12):
-                return False
+            # Try alternative: generic save button
+            if not click_element(self.ws, "button.save", msg_id=12):
+                # Last resort: form submit via JS
+                if not self._submit_form_via_js():
+                    return False
 
         time.sleep(3)
         return True
+
+    def _submit_form_via_js(self) -> bool:
+        """Submit the comment form via JavaScript as last resort."""
+        if not self.ws:
+            return False
+        try:
+            result = send_and_recv(
+                self.ws,
+                13,
+                "Runtime.evaluate",
+                {
+                    "expression": """
+                    (function() {
+                        var form = document.querySelector('.commentarea form');
+                        if (!form) return 'no form';
+                        // Trigger the form's onsubmit handler directly
+                        var result = form.onsubmit ? form.onsubmit.call(form) : true;
+                        if (result === false) return 'onsubmit returned false';
+                        // Fallback: submit the form
+                        form.submit();
+                        return 'submitted';
+                    })()
+                    """,
+                    "returnByValue": True,
+                },
+            )
+            return result == "submitted" or result == "onsubmit returned false"
+        except Exception:
+            return False
 
     def engage_with_subreddit(self, subreddit: str) -> Optional[dict]:
         """Find and reply to a relevant post in a subreddit."""

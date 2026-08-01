@@ -141,13 +141,11 @@ class RedditPlatform:
         if not posts:
             return None
 
-        # Filter for suitable posts (active but not too crowded)
+        # Filter for suitable posts (allow posts with any comment count)
         candidates = [
             p
             for p in posts
-            if 2 <= p.get("comments", 0) <= 50
-            and p.get("url", "") not in self.replied_urls
-            and p.get("score", 0) >= 1
+            if p.get("url", "") not in self.replied_urls and p.get("score", 0) >= 1
         ]
 
         if not candidates:

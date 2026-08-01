@@ -11,7 +11,6 @@ from typing import List, Optional
 
 import websocket
 
-from .. import config
 from ..cdp_utils import (
     create_tab,
     fill_input,
@@ -21,7 +20,6 @@ from ..cdp_utils import (
     wait_for_element,
     disable_beforeunload,
 )
-from ..llm import generate_reply, get_url_for_context
 
 
 class HackerNewsPlatform:
@@ -158,20 +156,12 @@ class HackerNewsPlatform:
         return True
 
     def engage_with_post(self, post: dict) -> Optional[dict]:
-        """Comment on a Hacker News post."""
+        """Comment on a Hacker News post (no links, just discussion)."""
         if post.get("url", "") in self.replied_urls:
             return None
 
-        # Generate comment
-        comment = generate_reply(
-            post["title"],
-            platform="hackernews",
-            max_chars=config.MAX_REPLY_LENGTH["hackernews"],
-        )
-
-        if not comment:
-            url = get_url_for_context(post["title"])
-            comment = f"Progressive tool routing changes the game for AI dev efficiency. {url}"
+        # Generate comment without links
+        comment = self._generate_no_link_comment(post["title"])
 
         # Post comment
         success = self._post_comment(post["id"], comment)
@@ -188,6 +178,49 @@ class HackerNewsPlatform:
             }
 
         return None
+
+    def _generate_no_link_comment(self, post_title: str) -> str:
+        """Generate a helpful comment without any links."""
+        post_lower = post_title.lower()
+
+        # Template comments based on topic (no links)
+        templates = {
+            "mcp": [
+                "Progressive tool routing is the key insight here - semantic search matches prompts to only the most relevant tools instead of loading everything into context. Cuts token usage dramatically.",
+                "The MCP ecosystem benefits a lot from progressive routing. Only loading the tools you need per task keeps context windows manageable.",
+                "Interesting. I've found that managing MCP servers gets much easier with health monitoring and automatic failover built in.",
+            ],
+            "rate_limit": [
+                "The waterfall pattern is underrated for rate limits: Primary -> Secondary -> Local models -> Queue. When one provider fails, the next picks up automatically.",
+                "Transparent failover between providers solves the rate limit problem well. Your agents shouldn't even notice when one API is down.",
+            ],
+            "memory": [
+                "Dual-tier memory is the way to go: L1 for session scratchpad (fast, ephemeral), L2 for permanent semantic storage with vector search.",
+                "Persistent memory across sessions changes everything. Vector search by meaning rather than keywords makes it genuinely useful.",
+            ],
+            "agent": [
+                "The combo that makes agents reliable: progressive tool routing, persistent memory, and multi-model failover.",
+                "Agents become production-ready when you solve tool selection, memory persistence, and provider failover together.",
+            ],
+            "generic": [
+                "This is an interesting problem. A similar approach that worked for us was to only load the tools the agent actually needs for each task.",
+                "The biggest win for AI dev efficiency is cutting down what gets loaded into context. Semantically matching tasks to the top tools helps a lot.",
+            ],
+        }
+
+        # Select category
+        if "mcp" in post_lower or "tool" in post_lower:
+            category = "mcp"
+        elif "rate limit" in post_lower or "429" in post_lower:
+            category = "rate_limit"
+        elif "memory" in post_lower or "remember" in post_lower:
+            category = "memory"
+        elif "agent" in post_lower:
+            category = "agent"
+        else:
+            category = "generic"
+
+        return random.choice(templates[category])
 
     def submit_show_hn(self, title: str, url: str) -> bool:
         """Submit a 'Show HN' post."""

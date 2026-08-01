@@ -35,6 +35,7 @@ class TwitterPlatform:
         self.ws: Optional[websocket.WebSocket] = None
         self.replied_urls: set = set()
         self.reply_count: int = 0
+        self._dialog_watcher_running = False
 
     def connect(self) -> bool:
         """Create a new browser tab for Twitter."""
@@ -43,6 +44,10 @@ class TwitterPlatform:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
             # Disable beforeunload dialogs
             self._disable_beforeunload()
+            # Additional dialog prevention
+            self._inject_dialog_blocker()
+            # Start dialog watcher thread
+            self._start_dialog_watcher()
             return True
         return False
 
@@ -51,8 +56,45 @@ class TwitterPlatform:
         if self.ws:
             disable_beforeunload(self.ws)
 
+    def _inject_dialog_blocker(self):
+        """Inject JavaScript to block all beforeunload dialogs."""
+        if not self.ws:
+            return
+        try:
+            send_and_recv(
+                self.ws,
+                500,
+                "Runtime.evaluate",
+                {
+                    "expression": """
+                    (function() {
+                        // Override beforeunload to prevent dialogs
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            delete e.returnValue;
+                            return '';
+                        }, true);
+                        // Override onbeforeunload
+                        Object.defineProperty(window, 'onbeforeunload', {
+                            set: function() {},
+                            get: function() { return null; }
+                        });
+                        // Override alert/confirm/prompt
+                        window.alert = function() {};
+                        window.confirm = function() { return true; };
+                        window.prompt = function() { return ''; };
+                        return 'dialogs blocked';
+                    })()
+                    """,
+                    "returnByValue": True,
+                },
+            )
+        except Exception:
+            pass
+
     def disconnect(self):
         """Close the WebSocket connection."""
+        self._dialog_watcher_running = False
         if self.ws:
             try:
                 self.ws.close()
@@ -64,6 +106,50 @@ class TwitterPlatform:
         """Dismiss 'Leave site?' dialog if it appears."""
         if self.ws:
             handle_dialog(self.ws, accept=True)
+
+    def _start_dialog_watcher(self):
+        """Start a background thread that auto-accepts any JavaScript dialogs."""
+        if self._dialog_watcher_running or not self.ws:
+            return
+        self._dialog_watcher_running = True
+
+        ws_ref = self.ws
+
+        def watcher():
+            try:
+                # Enable dialog events
+                ws_ref.send(json.dumps({
+                    "id": 900,
+                    "method": "Page.enable",
+                }))
+                time.sleep(0.5)
+
+                while self._dialog_watcher_running and self.ws:
+                    try:
+                        self.ws.settimeout(1)
+                        data = json.loads(self.ws.recv())
+                        # Auto-accept any dialog event
+                        if data.get("method") == "Page.javascriptDialogOpening":
+                            try:
+                                self.ws.send(json.dumps({
+                                    "id": 901,
+                                    "method": "Page.handleJavaScriptDialog",
+                                    "params": {"accept": True},
+                                }))
+                            except Exception:
+                                pass
+                    except websocket.WebSocketTimeoutException:
+                        continue
+                    except Exception:
+                        break
+            except Exception:
+                pass
+            finally:
+                self._dialog_watcher_running = False
+
+        import threading
+        t = threading.Thread(target=watcher, name="twitter-dialog-watcher", daemon=True)
+        t.start()
 
     def _search_tweets(self, query: str) -> List[dict]:
         """Search for tweets matching a query."""

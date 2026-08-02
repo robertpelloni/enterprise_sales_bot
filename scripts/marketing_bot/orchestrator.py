@@ -69,6 +69,9 @@ class MarketingOrchestrator:
         self.log("Reddit", "Agent started")
         post_count = 0
 
+        # Warmup - let the page load before first cycle
+        time.sleep(5)
+
         while not self.stop_event.is_set():
             try:
                 result = platform.run_cycle()
@@ -79,11 +82,14 @@ class MarketingOrchestrator:
                         f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...",
                     )
                     post_count += 1
+                    # Longer wait after a successful post (rate limiting)
+                    delay = random.randint(
+                        config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                    )
+                else:
+                    # No post found/failed - retry sooner (2-4 min)
+                    delay = random.randint(120, 240)
 
-                # Rate limiting
-                delay = random.randint(
-                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
-                )
                 self.log("Reddit", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -109,6 +115,9 @@ class MarketingOrchestrator:
         self.log("Twitter", "Agent started")
         reply_count = 0
 
+        # Warmup - let the page load before first cycle
+        time.sleep(5)
+
         while not self.stop_event.is_set():
             try:
                 result = platform.run_cycle()
@@ -119,11 +128,14 @@ class MarketingOrchestrator:
                         f"Reply #{platform.reply_count}: {result.get('tweet_text', '')[:60]}...",
                     )
                     reply_count += 1
+                    # Longer wait after a successful post (rate limiting)
+                    delay = random.randint(
+                        config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                    )
+                else:
+                    # No reply found/failed - retry sooner (2-4 min)
+                    delay = random.randint(120, 240)
 
-                # Rate limiting
-                delay = random.randint(
-                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
-                )
                 self.log("Twitter", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -149,6 +161,9 @@ class MarketingOrchestrator:
         self.log("LinkedIn", "Agent started")
         comment_count = 0
 
+        # Warmup - let the page load before first cycle
+        time.sleep(5)
+
         while not self.stop_event.is_set():
             try:
                 result = platform.run_cycle()
@@ -159,11 +174,14 @@ class MarketingOrchestrator:
                         f"Comment #{platform.comment_count}: {result.get('post_text', '')[:60]}...",
                     )
                     comment_count += 1
+                    # Longer wait after a successful post (rate limiting)
+                    delay = random.randint(
+                        config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                    )
+                else:
+                    # No comment found/failed - retry sooner (2-4 min)
+                    delay = random.randint(120, 240)
 
-                # Rate limiting
-                delay = random.randint(
-                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
-                )
                 self.log("LinkedIn", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):
@@ -227,6 +245,9 @@ class MarketingOrchestrator:
         self.log("HackerNews", "Agent started")
         comment_count = 0
 
+        # Warmup - let the page load before first cycle
+        time.sleep(5)
+
         while not self.stop_event.is_set():
             try:
                 result = platform.run_cycle()
@@ -237,11 +258,14 @@ class MarketingOrchestrator:
                         f"Comment #{platform.comment_count}: {result.get('post_title', '')[:60]}...",
                     )
                     comment_count += 1
+                    # Longer wait after a successful post (rate limiting)
+                    delay = random.randint(
+                        config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                    )
+                else:
+                    # No comment found/failed - retry sooner (2-4 min)
+                    delay = random.randint(120, 240)
 
-                # Rate limiting
-                delay = random.randint(
-                    config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
-                )
                 self.log("HackerNews", f"Waiting {delay // 60} minutes...")
 
                 if self.stop_event.wait(timeout=delay):

@@ -20,7 +20,6 @@ from ..cdp_utils import (
     send_and_recv,
     type_text,
     wait_for_element,
-    disable_beforeunload,
 )
 from ..llm import generate_reply, get_url_for_context
 
@@ -42,15 +41,56 @@ class LinkedInPlatform:
         tab_ws = create_tab(self.browser_ws, config.LINKEDIN_COMPANY_URL)
         if tab_ws:
             self.ws = websocket.create_connection(tab_ws, timeout=30)
-            # Disable beforeunload dialogs
-            self._disable_beforeunload()
+            self._inject_dialog_blocker()
             return True
         return False
 
-    def _disable_beforeunload(self):
-        """Disable beforeunload event to prevent 'Leave site?' dialogs."""
-        if self.ws:
-            disable_beforeunload(self.ws)
+    def _inject_dialog_blocker(self):
+        """Inject JS to block beforeunload/alert/confirm/prompt on ALL page loads."""
+        if not self.ws:
+            return
+        try:
+            send_and_recv(
+                self.ws,
+                500,
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": """
+                    (function() {
+                        window.addEventListener('beforeunload', function(e) {
+                            e.preventDefault();
+                            delete e.returnValue;
+                            return '';
+                        }, true);
+                        Object.defineProperty(window, 'onbeforeunload', {
+                            set: function() {},
+                            get: function() { return null; }
+                        });
+                        window.alert = function() {};
+                        window.confirm = function() { return true; };
+                        window.prompt = function() { return ''; };
+                        return 'dialogs blocked';
+                    })()
+                    """,
+                },
+            )
+        except Exception:
+            pass
+
+    def reconnect(self) -> bool:
+        """Reconnect to a fresh browser tab."""
+        self.disconnect()
+        return self.connect()
+
+    def is_alive(self) -> bool:
+        """Check if the WebSocket connection is still alive."""
+        if not self.ws:
+            return False
+        try:
+            self.ws.ping()
+            return True
+        except Exception:
+            return False
 
     def disconnect(self):
         """Close the WebSocket connection."""

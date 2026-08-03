@@ -44,7 +44,10 @@ class MarketingOrchestrator:
         """Connect to the browser."""
         self.browser_ws = get_browser_ws()
         if not self.browser_ws:
-            self.log("System", "ERROR: No browser connection. Start Edge with --remote-debugging-port=9222")
+            self.log(
+                "System",
+                "ERROR: No browser connection. Start Edge with --remote-debugging-port=9222",
+            )
             return False
         self.log("System", f"Connected to browser: {self.browser_ws[:50]}...")
         return True
@@ -75,10 +78,19 @@ class MarketingOrchestrator:
 
                 if result:
                     self.record_result(result)
-                    comment = result.get("post_title") or result.get("tweet_text") or result.get("post_text") or ""
-                    self.log(platform_name, f"Action #{action_count + 1}: {comment[:60]}...")
+                    comment = (
+                        result.get("post_title")
+                        or result.get("tweet_text")
+                        or result.get("post_text")
+                        or ""
+                    )
+                    self.log(
+                        platform_name, f"Action #{action_count + 1}: {comment[:60]}..."
+                    )
                     action_count += 1
-                    delay = random.randint(config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS)
+                    delay = random.randint(
+                        config.DELAY_MIN_SECONDS, config.DELAY_MAX_SECONDS
+                    )
                 else:
                     delay = random.randint(120, 240)
 
@@ -93,7 +105,10 @@ class MarketingOrchestrator:
 
                 # Try to reconnect
                 if consecutive_failures <= 3:
-                    self.log(platform_name, f"Reconnecting (attempt {consecutive_failures})...")
+                    self.log(
+                        platform_name,
+                        f"Reconnecting (attempt {consecutive_failures})...",
+                    )
                     try:
                         if platform.reconnect():
                             self.log(platform_name, "Reconnected successfully!")
@@ -159,7 +174,9 @@ class MarketingOrchestrator:
                     result = platform.run_cycle(content)
                     if result:
                         self.record_result(result)
-                        self.log("Bluesky", f"Post #{post_count + 1}: {content[:60]}...")
+                        self.log(
+                            "Bluesky", f"Post #{post_count + 1}: {content[:60]}..."
+                        )
                         post_count += 1
 
                 delay = random.randint(3600, 7200)

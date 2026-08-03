@@ -47,36 +47,36 @@ class RedditPlatform:
         return False
 
     def _inject_dialog_blocker(self):
-        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs."""
+        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs.
+
+        Uses Page.addScriptToEvaluateOnNewDocument so the blocker persists
+        across ALL page navigations (Runtime.evaluate is lost on navigation).
+        """
         if not self.ws:
             return
         try:
             send_and_recv(
                 self.ws,
                 500,
-                "Runtime.evaluate",
+                "Page.addScriptToEvaluateOnNewDocument",
                 {
-                    "expression": """
+                    "source": """
                     (function() {
-                        // Override beforeunload to prevent dialogs
                         window.addEventListener('beforeunload', function(e) {
                             e.preventDefault();
                             delete e.returnValue;
                             return '';
                         }, true);
-                        // Override onbeforeunload
                         Object.defineProperty(window, 'onbeforeunload', {
                             set: function() {},
                             get: function() { return null; }
                         });
-                        // Override alert/confirm/prompt
                         window.alert = function() {};
                         window.confirm = function() { return true; };
                         window.prompt = function() { return ''; };
                         return 'dialogs blocked';
                     })()
                     """,
-                    "returnByValue": True,
                 },
             )
         except Exception:

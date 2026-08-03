@@ -47,24 +47,29 @@ class TwitterPlatform:
         return False
 
     def _inject_dialog_blocker(self):
-        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs."""
+        """Inject JavaScript to block all beforeunload/alert/confirm/prompt dialogs.
+
+        Uses Page.addScriptToEvaluateOnNewDocument so the blocker persists
+        across ALL page navigations (Runtime.evaluate is lost on navigation).
+        """
         if not self.ws:
             return
         try:
+            # This script runs on EVERY new page load (persists across navigations)
             send_and_recv(
                 self.ws,
                 500,
-                "Runtime.evaluate",
+                "Page.addScriptToEvaluateOnNewDocument",
                 {
-                    "expression": """
+                    "source": """
                     (function() {
-                        // Override beforeunload to prevent dialogs
+                        // Override beforeunload to prevent 'Leave site?' dialogs
                         window.addEventListener('beforeunload', function(e) {
                             e.preventDefault();
                             delete e.returnValue;
                             return '';
                         }, true);
-                        // Override onbeforeunload
+                        // Override onbeforeunload property
                         Object.defineProperty(window, 'onbeforeunload', {
                             set: function() {},
                             get: function() { return null; }
@@ -76,7 +81,6 @@ class TwitterPlatform:
                         return 'dialogs blocked';
                     })()
                     """,
-                    "returnByValue": True,
                 },
             )
         except Exception:

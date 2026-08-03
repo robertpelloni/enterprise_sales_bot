@@ -93,8 +93,36 @@ def send_and_recv(
 
 
 def navigate(ws: websocket.WebSocket, url: str, wait: int = 6) -> bool:
-    """Navigate to URL and wait for load."""
+    """Navigate to URL, auto-accepting any beforeunload dialogs.
+
+    Strategy: Remove beforeunload handlers BEFORE navigation so the
+    dialog never appears in the first place.
+    """
     try:
+        # Step 1: Remove all beforeunload handlers before navigating
+        send_and_recv(
+            ws,
+            5000,
+            "Runtime.evaluate",
+            {
+                "expression": """
+                (function() {
+                    // Remove all beforeunload listeners
+                    window.onbeforeunload = null;
+                    // Override addEventListener to block future beforeunload
+                    var orig = EventTarget.prototype.addEventListener;
+                    EventTarget.prototype.addEventListener = function(type, fn, opts) {
+                        if (type === 'beforeunload') return;
+                        return orig.call(this, type, fn, opts);
+                    };
+                    return 'cleaned';
+                })()
+                """,
+                "returnByValue": True,
+            },
+        )
+
+        # Step 2: Navigate
         ws.send(
             json.dumps({"id": 1, "method": "Page.navigate", "params": {"url": url}})
         )

@@ -114,7 +114,7 @@ class MarketingOrchestrator:
                         new_ws = get_browser_ws()
                         if new_ws:
                             platform.browser_ws = new_ws
-                        
+
                         if platform.reconnect():
                             self.log(platform_name, "Reconnected successfully!")
                             time.sleep(5)  # Let page load

@@ -216,7 +216,7 @@
     "@tanstack/react-virtual": "^3.13.13",
     "@types/d3-force": "^3.0.10",
     "@types/dompurify": "^3.0.5",
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.6.0",
     "ansi-to-html": "^0.7.2",
     "archiver": "^7.0.1",
     "better-sqlite3": "^12.5.0",

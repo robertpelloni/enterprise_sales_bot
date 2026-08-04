@@ -94,24 +94,52 @@ class RedditPlatform:
     def _is_relevant_post(self, title: str) -> bool:
         """Check if a post is relevant to HyperNexus/TormentNexus features."""
         title_lower = title.lower()
-        
+
         # Keywords that indicate relevance to our product
         relevant_keywords = [
-            "mcp", "model context protocol", "tool routing", "tool schema",
-            "claude code", "cursor", "copilot", "gemini cli", "ai agent",
-            "llm", "rate limit", "429", "context window", "token",
-            "memory", "persistent", "vector", "sqlite", "embedding",
-            "failover", "waterfall", "cascade", "ollama", "local llm",
-            "developer tools", "productivity", "automation", "workflow",
-            "ai infrastructure", "agent framework", "multi-agent",
-            "self-hosted", "open source", "go", "golang", "typescript",
+            "mcp",
+            "model context protocol",
+            "tool routing",
+            "tool schema",
+            "claude code",
+            "cursor",
+            "copilot",
+            "gemini cli",
+            "ai agent",
+            "llm",
+            "rate limit",
+            "429",
+            "context window",
+            "token",
+            "memory",
+            "persistent",
+            "vector",
+            "sqlite",
+            "embedding",
+            "failover",
+            "waterfall",
+            "cascade",
+            "ollama",
+            "local llm",
+            "developer tools",
+            "productivity",
+            "automation",
+            "workflow",
+            "ai infrastructure",
+            "agent framework",
+            "multi-agent",
+            "self-hosted",
+            "open source",
+            "go",
+            "golang",
+            "typescript",
         ]
-        
+
         # Check if any keyword matches
         for keyword in relevant_keywords:
             if keyword in title_lower:
                 return True
-        
+
         return False
 
     def _extract_posts(self, subreddit: str) -> List[dict]:

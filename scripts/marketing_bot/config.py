@@ -70,15 +70,16 @@ REDDIT_USERNAME: str = os.environ.get("REDDIT_USERNAME", "HyperNexusLLC")
 REDDIT_PASSWORD: str = os.environ.get("REDDIT_PASSWORD", "Temppass0!")
 
 # Smaller, less moderated subreddits (less likely to get removed)
+# Focused on AI tools, MCP, and developer productivity
 REDDIT_SUBREDDITS: List[str] = [
     "MCP_Servers",
-    "AgentFrameworks",
-    "AI_Agents",
-    "LLMDevs",
+    "ClaudeAI",
+    "LocalLLaMA",
+    "MachineLearning",
+    "artificial",
+    "singularity",
     "PromptEngineering",
     "selfhosted",
-    "devtools",
-    "opensourceai",
 ]
 
 # Larger subreddits (build karma first, post later)
@@ -94,13 +95,18 @@ REDDIT_KARMA_SUBREDDITS: List[str] = [
 # TWITTER/X CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 
+# Search terms that match HyperNexus/TormentNexus features
 TWITTER_SEARCH_TERMS: List[str] = [
-    "MCP server",
-    "AI agent framework",
-    "Claude Code",
-    "AI tool routing",
-    "LLM rate limit",
-    "developer productivity AI",
+    "MCP server management",
+    "AI agent context window",
+    "Claude Code memory",
+    "AI tool routing token",
+    "LLM rate limit 429",
+    "AI agent persistent memory",
+    "MCP tool schema bloat",
+    "developer productivity AI tools",
+    "local-first AI infrastructure",
+    "AI agent failover",
 ]
 
 # ═══════════════════════════════════════════════════════════════
@@ -111,11 +117,15 @@ LINKEDIN_COMPANY_ID: str = "135697123"
 LINKEDIN_COMPANY_URL: str = (
     f"https://www.linkedin.com/company/{LINKEDIN_COMPANY_ID}/admin/"
 )
+
+# Search terms that match HyperNexus/TormentNexus features
 LINKEDIN_SEARCH_TERMS: List[str] = [
-    "MCP server",
-    "AI agent",
-    "Claude Code",
-    "developer tools AI",
+    "MCP server management",
+    "AI agent infrastructure",
+    "Claude Code tools",
+    "developer productivity AI",
+    "AI agent memory",
+    "LLM rate limiting",
 ]
 
 # ═══════════════════════════════════════════════════════════════

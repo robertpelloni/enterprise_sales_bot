@@ -91,6 +91,29 @@ class RedditPlatform:
                 pass
             self.ws = None
 
+    def _is_relevant_post(self, title: str) -> bool:
+        """Check if a post is relevant to HyperNexus/TormentNexus features."""
+        title_lower = title.lower()
+        
+        # Keywords that indicate relevance to our product
+        relevant_keywords = [
+            "mcp", "model context protocol", "tool routing", "tool schema",
+            "claude code", "cursor", "copilot", "gemini cli", "ai agent",
+            "llm", "rate limit", "429", "context window", "token",
+            "memory", "persistent", "vector", "sqlite", "embedding",
+            "failover", "waterfall", "cascade", "ollama", "local llm",
+            "developer tools", "productivity", "automation", "workflow",
+            "ai infrastructure", "agent framework", "multi-agent",
+            "self-hosted", "open source", "go", "golang", "typescript",
+        ]
+        
+        # Check if any keyword matches
+        for keyword in relevant_keywords:
+            if keyword in title_lower:
+                return True
+        
+        return False
+
     def _extract_posts(self, subreddit: str) -> List[dict]:
         """Extract posts from a subreddit page."""
         if not self.ws:
@@ -204,11 +227,13 @@ class RedditPlatform:
         if not posts:
             return None
 
-        # Filter for suitable posts (allow posts with any comment count)
+        # Filter for suitable posts AND relevance to our product
         candidates = [
             p
             for p in posts
-            if p.get("url", "") not in self.replied_urls and p.get("score", 0) >= 1
+            if p.get("url", "") not in self.replied_urls
+            and p.get("score", 0) >= 1
+            and self._is_relevant_post(p.get("title", ""))
         ]
 
         if not candidates:

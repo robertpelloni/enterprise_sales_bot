@@ -141,6 +141,28 @@ class HackerNewsPlatform:
                 pass
         return []
 
+    def _is_relevant_post(self, title: str) -> bool:
+        """Check if a post is relevant to HyperNexus/TormentNexus features."""
+        title_lower = title.lower()
+        
+        # Keywords that indicate relevance to our product
+        relevant_keywords = [
+            "mcp", "model context protocol", "tool routing", "tool schema",
+            "claude code", "cursor", "copilot", "gemini cli", "ai agent",
+            "llm", "rate limit", "429", "context window", "token",
+            "memory", "persistent", "vector", "sqlite", "embedding",
+            "failover", "waterfall", "cascade", "ollama", "local llm",
+            "developer tools", "productivity", "automation", "workflow",
+            "ai infrastructure", "agent framework", "multi-agent",
+            "self-hosted", "open source", "go", "golang", "typescript",
+        ]
+        
+        for keyword in relevant_keywords:
+            if keyword in title_lower:
+                return True
+        
+        return False
+
     def _post_comment(self, item_id: str, comment_text: str) -> bool:
         """Post a comment on a Hacker News item."""
         if not self.ws:
@@ -272,12 +294,13 @@ class HackerNewsPlatform:
         if not posts:
             return None
 
-        # Filter for suitable posts
+        # Filter for suitable posts AND relevance to our product
         candidates = [
             p
             for p in posts
             if 2 <= p.get("comments", 0) <= 100
             and p.get("url", "") not in self.replied_urls
+            and self._is_relevant_post(p.get("title", ""))
         ]
 
         if not candidates:

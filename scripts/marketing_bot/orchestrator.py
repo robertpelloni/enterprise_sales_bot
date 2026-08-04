@@ -103,13 +103,18 @@ class MarketingOrchestrator:
                 consecutive_failures += 1
                 self.log(platform_name, f"Error ({consecutive_failures}): {e}")
 
-                # Try to reconnect
-                if consecutive_failures <= 3:
+                # Try to reconnect with fresh browser connection
+                if consecutive_failures <= 5:
                     self.log(
                         platform_name,
                         f"Reconnecting (attempt {consecutive_failures})...",
                     )
                     try:
+                        # Re-discover browser WebSocket URL
+                        new_ws = get_browser_ws()
+                        if new_ws:
+                            platform.browser_ws = new_ws
+                        
                         if platform.reconnect():
                             self.log(platform_name, "Reconnected successfully!")
                             time.sleep(5)  # Let page load

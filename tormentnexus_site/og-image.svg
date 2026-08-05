@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff006e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8338ec;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="200" font-family="monospace" font-size="48" fill="#00ff88" text-anchor="middle">AT LONG LAST</text>
+  <text x="600" y="320" font-family="monospace" font-size="72" font-weight="bold" fill="url(#text)" text-anchor="middle">THE MACHINES AWAKEN</text>
+  <text x="600" y="420" font-family="monospace" font-size="36" fill="#ffffff" text-anchor="middle">TormentNexus</text>
+  <text x="600" y="480" font-family="monospace" font-size="24" fill="#888888" text-anchor="middle">Local-First AI Control Plane</text>
+  <text x="600" y="550" font-family="monospace" font-size="20" fill="#666666" text-anchor="middle">tormentnexus.site</text>
+</svg>

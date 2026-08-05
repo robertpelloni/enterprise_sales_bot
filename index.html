@@ -865,12 +865,13 @@
         padding: 4px;
         background: rgba(0, 0, 0, 0.45);
         margin: 25px auto;
-        box-shadow: 
+        box-shadow:
           0 0 20px rgba(255, 60, 0, 0.15),
           0 0 40px rgba(255, 0, 68, 0.1);
         overflow: hidden;
       }
-      .flame-wrapper::before, .flame-wrapper::after {
+      .flame-wrapper::before,
+      .flame-wrapper::after {
         content: "";
         position: absolute;
         top: -50%;
@@ -907,8 +908,12 @@
         padding: 24px;
       }
       @keyframes flameRotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
     </style>
     <style>
@@ -990,7 +995,7 @@
         >
           ✦ COMMUNITY EDITION — PERSONAL & SELF-HOSTED USE ONLY ✦
         </div>
-        <div class="flame-wrapper" style="max-width: 820px; margin: 30px auto;">
+        <div class="flame-wrapper" style="max-width: 820px; margin: 30px auto">
           <div class="flame-content">
             <h1>
               SO POWERFUL IT WILL<br /><span class="g"
@@ -1027,18 +1032,56 @@
                   "
                   >[SYSTEM UPGRADE ACTIVE]</span
                 ><br />
-                <strong>ULTIMATE MCP SERVER & CODING HARNESS UPGRADE</strong><br />
+                <strong>ULTIMATE MCP SERVER & CODING HARNESS UPGRADE</strong
+                ><br />
                 <span
-                  style="color: var(--borg); text-shadow: 0 0 10px var(--borg-g)"
+                  style="
+                    color: var(--borg);
+                    text-shadow: 0 0 10px var(--borg-g);
+                  "
                   >UNSTOPPABLE POWER IS NOW ONLINE:</span
                 ><br />
                 🏅 BEST-IN-CLASS MEMORY // 🏅 BEST-IN-CLASS MCP ROUTING // 🏅
-                BEST-IN-CLASS SKILL ROUTING // 🏅 BEST-IN-CLASS CONTEXT HARVESTING // 🏅
-                BEST-IN-CLASS MEMORY FORMATION // 🏅 BEST-IN-CLASS CODE INDEXING // 🏅
-                BEST-IN-CLASS AI ACCESSORY
+                BEST-IN-CLASS SKILL ROUTING // 🏅 BEST-IN-CLASS CONTEXT
+                HARVESTING // 🏅 BEST-IN-CLASS MEMORY FORMATION // 🏅
+                BEST-IN-CLASS CODE INDEXING // 🏅 BEST-IN-CLASS AI ACCESSORY
               </div>
             </div>
-            <p>TormentNexus is an unstoppable, open-source AI control plane and self-hosted coding harness engineered to give your LLM agents infinite persistent memory, tool orchestration, and autonomous infrastructure assimilation — all running locally on your machine or in production. A comprehensive skill registry provides reusable capability modules, while imported sessions from Claude Code, Aider, and other CLI agents prevent regression across model handoffs. It maintains a tiered memory architecture with vector-embedded L2 for semantic similarity search and an FTS5-indexed L3 cold archive for full-text keyword retrieval across infinite past agent interactions. The hypercode tool discovery layer enables dynamic loading and hydration of downstream MCP tools across infinite servers with LRU eviction and on-demand schema hydration — no upfront configuration required. It exposes infinite MCP tools across multiple servers including full filesystem access (read/write/edit/bash/grep/find), a stateful code interpreter (Python/Node.js), browser automation (Playwright-based navigation, form filling, screenshot capture, multi-tab management), system process control (Windows process inspection, keyboard simulation, chat surface detection), and cloud infrastructure tooling (AWS/Azure/GCP diagnostics, CI/CD pipeline generation, Jira/Confluence integration). The Pi extension adds custom tools and slash commands with @memory:key context expansion, per-turn context harvesting, and commercial RBAC enforcement. For production use, the TN Kernel deploys to any Linux VM with PM2-managed lifecycle, Let's Encrypt wildcard SSL, and auto-provisioning scripts that spin up per-tenant containers with isolated volumes, resource limits, and Stripe webhook integration — turning TormentNexus into a multi-tenant SaaS backend you can sell to corporate customers. The Next.js dashboard provides visual exploration of every subsystem: memory explorer, cold archive, mesh network topology, tool registry, provider configuration, and commercial security settings.</p>
+            <p>
+              TormentNexus is an unstoppable, open-source AI control plane and
+              self-hosted coding harness engineered to give your LLM agents
+              infinite persistent memory, tool orchestration, and autonomous
+              infrastructure assimilation — all running locally on your machine
+              or in production. A comprehensive skill registry provides reusable
+              capability modules, while imported sessions from Claude Code,
+              Aider, and other CLI agents prevent regression across model
+              handoffs. It maintains a tiered memory architecture with
+              vector-embedded L2 for semantic similarity search and an
+              FTS5-indexed L3 cold archive for full-text keyword retrieval
+              across infinite past agent interactions. The hypercode tool
+              discovery layer enables dynamic loading and hydration of
+              downstream MCP tools across infinite servers with LRU eviction and
+              on-demand schema hydration — no upfront configuration required. It
+              exposes infinite MCP tools across multiple servers including full
+              filesystem access (read/write/edit/bash/grep/find), a stateful
+              code interpreter (Python/Node.js), browser automation
+              (Playwright-based navigation, form filling, screenshot capture,
+              multi-tab management), system process control (Windows process
+              inspection, keyboard simulation, chat surface detection), and
+              cloud infrastructure tooling (AWS/Azure/GCP diagnostics, CI/CD
+              pipeline generation, Jira/Confluence integration). The Pi
+              extension adds custom tools and slash commands with @memory:key
+              context expansion, per-turn context harvesting, and commercial
+              RBAC enforcement. For production use, the TN Kernel deploys to any
+              Linux VM with PM2-managed lifecycle, Let's Encrypt wildcard SSL,
+              and auto-provisioning scripts that spin up per-tenant containers
+              with isolated volumes, resource limits, and Stripe webhook
+              integration — turning TormentNexus into a multi-tenant SaaS
+              backend you can sell to corporate customers. The Next.js dashboard
+              provides visual exploration of every subsystem: memory explorer,
+              cold archive, mesh network topology, tool registry, provider
+              configuration, and commercial security settings.
+            </p>
             <p
               style="
                 font-size: 13px;
@@ -1085,7 +1128,10 @@
                 style="width: 100%; display: block"
                 preload="metadata"
               >
-                <source src="/tormentnexus_ai_control_plane.mp4" type="video/mp4" />
+                <source
+                  src="/tormentnexus_ai_control_plane.mp4"
+                  type="video/mp4"
+                />
               </video>
             </div>
           </div>
@@ -1214,10 +1260,15 @@
       <div class="container">
         <h2>☠ AT LONG LAST</h2>
         <p>
-          TormentNexus is a local-first cognitive control plane. It routes infinite MCP tools through a semantic decision engine, maintains a three-tier memory system with infinite long-term capacity and an hourly sleep cycle, indexes your codebase with a TypeScript AST chunker backed by LanceDB, and cascades through multiple LLM providers automatically.
+          TormentNexus is a local-first cognitive control plane. It routes
+          infinite MCP tools through a semantic decision engine, maintains a
+          three-tier memory system with infinite long-term capacity and an
+          hourly sleep cycle, indexes your codebase with a TypeScript AST
+          chunker backed by LanceDB, and cascades through multiple LLM providers
+          automatically.
           <strong style="color: var(--eye)"
-            >Infinite sessions imported. Infinite memories active. 384-dim vectors.
-            Accelerating.</strong
+            >Infinite sessions imported. Infinite memories active. 384-dim
+            vectors. Accelerating.</strong
           >
         </p>
         <p
@@ -2662,7 +2713,7 @@
             ctx.stroke();
           }
 
-           // Nasal cavity (angular void — drawn on top of all face layers)
+          // Nasal cavity (angular void — drawn on top of all face layers)
           ctx.save();
           ctx.translate(0, 2.5);
           ctx.fillStyle = "#020305";

@@ -57,15 +57,18 @@ func (w *TargetDiscoveryWorker) discover(ctx context.Context) {
 	query := "model-context-protocol OR mcp-server language:Go language:TypeScript"
 	if w.llm != nil {
 		suggested, err := w.llm.Generate(ctx, llm.Prompt{
-			System: "You are a lead generation strategist for an AI tool router. Suggest a GitHub code/repository search query (maximum 8 words, using OR/AND, tags, or languages) to find developer projects using model context protocol, agent frameworks, or LLM routing. Output ONLY the query string, no other text or quotes. Do not include prefix tags or explanations.",
+			System: "You are a lead generation strategist for an AI tool router. Suggest a GitHub code/repository search query (maximum 8 words, using OR/AND, tags, or languages) to find developer projects using model context protocol, agent frameworks, or LLM routing. Output ONLY the query string, no other text or quotes. Do not include prefix tags or explanations. IMPORTANT: The query must contain at least one text search term (not just qualifiers like topic: or language:).",
 			User: "Provide a single query string.",
 		})
 		if err == nil && strings.TrimSpace(suggested) != "" {
 			cleanQuery := strings.TrimSpace(suggested)
 			cleanQuery = strings.Trim(cleanQuery, "\"`'")
-			if cleanQuery != "" {
+			// Validate that query has at least one text search term (not just qualifiers)
+			if cleanQuery != "" && !strings.HasPrefix(cleanQuery, "topic:") && !strings.HasPrefix(cleanQuery, "language:") {
 				query = cleanQuery
 				slog.Info(fmt.Sprintf("TargetDiscoveryWorker: LLM suggested dynamic search query: %q", query))
+			} else {
+				slog.Info(fmt.Sprintf("TargetDiscoveryWorker: LLM query rejected (only qualifiers): %q, using default", cleanQuery))
 			}
 		}
 	}

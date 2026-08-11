@@ -58,7 +58,7 @@ func (w *TargetDiscoveryWorker) discover(ctx context.Context) {
 	if w.llm != nil {
 		suggested, err := w.llm.Generate(ctx, llm.Prompt{
 			System: "You are a lead generation strategist for an AI tool router. Suggest a GitHub code/repository search query (maximum 8 words, using OR/AND, tags, or languages) to find developer projects using model context protocol, agent frameworks, or LLM routing. Output ONLY the query string, no other text or quotes. Do not include prefix tags or explanations. IMPORTANT: The query must contain at least one text search term (not just qualifiers like topic: or language:).",
-			User: "Provide a single query string.",
+			User:   "Provide a single query string.",
 		})
 		if err == nil && strings.TrimSpace(suggested) != "" {
 			cleanQuery := strings.TrimSpace(suggested)
@@ -74,8 +74,8 @@ func (w *TargetDiscoveryWorker) discover(ctx context.Context) {
 	}
 
 	opts := &github.SearchOptions{
-		Sort:	"updated",
-		Order:	"desc",
+		Sort:  "updated",
+		Order: "desc",
 		ListOptions: github.ListOptions{
 			PerPage: 10,
 		},
@@ -100,11 +100,11 @@ func (w *TargetDiscoveryWorker) discover(ctx context.Context) {
 
 		// Create new lead
 		company := &db.Company{
-			Name:		repo.GetName(),
-			Domain:		domain,
-			TechStack:	[]string{repo.GetLanguage()},
-			HiringSignals:	[]string{"Active Open Source contributor"},
-			MarketCapTier:	"SMB",	// Default for discovered repos
+			Name:          repo.GetName(),
+			Domain:        domain,
+			TechStack:     []string{repo.GetLanguage()},
+			HiringSignals: []string{"Active Open Source contributor"},
+			MarketCapTier: "SMB", // Default for discovered repos
 		}
 
 		if err := w.db.CreateCompany(ctx, company); err != nil {
@@ -114,8 +114,8 @@ func (w *TargetDiscoveryWorker) discover(ctx context.Context) {
 		}
 
 		deal := &db.Deal{
-			CompanyID:	company.ID,
-			CurrentState:	db.StateDiscovered,
+			CompanyID:    company.ID,
+			CurrentState: db.StateDiscovered,
 		}
 
 		if err := w.db.CreateDeal(ctx, deal); err != nil {

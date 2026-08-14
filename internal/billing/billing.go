@@ -213,6 +213,20 @@ func (s *StripeBillingClient) CreateCheckoutSession(ctx context.Context, company
 		},
 	}
 
+	// Add 7-day trial period for subscription mode
+	if mode == stripe.CheckoutSessionModeSubscription {
+		trialPeriodDays := int64(7)
+		// Require payment method during trial
+		params.SubscriptionData = &stripe.CheckoutSessionSubscriptionDataParams{
+			TrialPeriodDays: stripe.Int64(trialPeriodDays),
+			TrialSettings: &stripe.CheckoutSessionSubscriptionDataTrialSettingsParams{
+				EndBehavior: &stripe.CheckoutSessionSubscriptionDataTrialSettingsEndBehaviorParams{
+					MissingPaymentMethod: stripe.String("cancel"),
+				},
+			},
+		}
+	}
+
 	sess, err := session.New(params)
 	if err != nil {
 		return "", fmt.Errorf("stripe checkout session creation failed: %w", err)
@@ -290,6 +304,20 @@ func (s *StripeBillingClient) CreateCheckoutSessionWithPrice(ctx context.Context
 			"price":      fmt.Sprintf("%d", priceAmount),
 			"interval":   interval,
 		},
+	}
+
+	// Add 7-day trial period for subscription mode
+	if mode == stripe.CheckoutSessionModeSubscription {
+		trialPeriodDays := int64(7)
+		// Require payment method during trial
+		params.SubscriptionData = &stripe.CheckoutSessionSubscriptionDataParams{
+			TrialPeriodDays: stripe.Int64(trialPeriodDays),
+			TrialSettings: &stripe.CheckoutSessionSubscriptionDataTrialSettingsParams{
+				EndBehavior: &stripe.CheckoutSessionSubscriptionDataTrialSettingsEndBehaviorParams{
+					MissingPaymentMethod: stripe.String("cancel"),
+				},
+			},
+		}
 	}
 
 	sess, err := session.New(params)

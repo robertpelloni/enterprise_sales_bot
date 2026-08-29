@@ -27,12 +27,12 @@ def get_cto_contacts(limit=None):
            WHERE c.email IS NOT NULL
              AND c.email != ''
              AND (
-               LOWER(c.role) LIKE '%cto%'
-               OR LOWER(c.role) LIKE '%chief technology%'
-               OR LOWER(c.role) LIKE '%founder%'
-               OR LOWER(c.role) LIKE '%head of engineering%'
-               OR LOWER(c.role) LIKE '%vp engineering%'
-               OR LOWER(c.role) LIKE '%architect%'
+               LOWER(c.role) LIKE '%%cto%%'
+               OR LOWER(c.role) LIKE '%%chief technology%%'
+               OR LOWER(c.role) LIKE '%%founder%%'
+               OR LOWER(c.role) LIKE '%%head of engineering%%'
+               OR LOWER(c.role) LIKE '%%vp engineering%%'
+               OR LOWER(c.role) LIKE '%%architect%%'
              )
            ORDER BY c.id
            LIMIT %s""",

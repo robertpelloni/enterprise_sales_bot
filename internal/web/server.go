@@ -124,6 +124,37 @@ func (s *Server) routes() {
 
 	// Newsletter subscription (public)
 	s.mux.Handle("/api/v1/newsletter/subscribe", rl.middleware(http.HandlerFunc(s.handleNewsletterSubscribe)))
+
+	// Outreach dashboard (public — read-only stats for hypernexus.site)
+	s.mux.Handle("/api/v1/outreach/stats", rl.middleware(http.HandlerFunc(s.handleOutreachStats)))
+	s.mux.Handle("/dashboard/outreach", rl.middleware(http.HandlerFunc(s.handleOutreachDashboard)))
+}
+
+// allowedOrigins returns true if the given Origin header is from a trusted site.
+func allowedOrigin(origin string) bool {
+	switch {
+	case origin == "":
+		return false
+	case strings.Contains(origin, "hypernexus.site"),
+		strings.Contains(origin, "tormentnexus.dev"),
+		strings.Contains(origin, "localhost"),
+		strings.Contains(origin, "127.0.0.1"),
+		strings.Contains(origin, "5.161.250.43"):
+		return true
+	default:
+		return false
+	}
+}
+
+// setCORSHeaders sets permissive-but-scoped CORS headers for the given request.
+// CORS only applies to browsers; non-browser clients (no Origin header) are unaffected.
+func setCORSHeaders(w http.ResponseWriter, r *http.Request) {
+	if origin := r.Header.Get("Origin"); allowedOrigin(origin) {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Max-Age", "86400")
 }
 
 // ServeHTTP implements the http.Handler interface.
@@ -1037,9 +1068,7 @@ func (s *Server) handleGenerateQuote(w http.ResponseWriter, r *http.Request) {
 // REST API for external pipeline management
 func (s *Server) handleLeadsAPI(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	setCORSHeaders(w, r)
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -1204,9 +1233,7 @@ func (s *Server) handleGDPRDelete(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleDealsAPI(w http.ResponseWriter, r *http.Request) {
 	// CORS Headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	setCORSHeaders(w, r)
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -1323,9 +1350,7 @@ func (s *Server) notifyTormentNexusProvision(ctx context.Context, checkoutMsg st
 }
 
 func (s *Server) handleCreateCheckout(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	setCORSHeaders(w, r)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -1463,7 +1488,7 @@ func (s *Server) handleBlogGenerate(w http.ResponseWriter, r *http.Request) {
 // Used by the Devvit Reddit app to fetch fresh content for scheduled posts.
 func (s *Server) handleRedditContent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORSHeaders(w, r)
 
 	if s.db == nil {
 		_ = json.NewEncoder(w).Encode(map[string]string{
@@ -1494,7 +1519,7 @@ func (s *Server) handleRedditContent(w http.ResponseWriter, r *http.Request) {
 // handleNewsletterSubscribe saves an email to the newsletter subscribers list.
 func (s *Server) handleNewsletterSubscribe(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORSHeaders(w, r)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -1520,6 +1545,94 @@ func (s *Server) handleNewsletterSubscribe(w http.ResponseWriter, r *http.Reques
 	_, _ = f.WriteString(time.Now().Format(time.RFC3339) + "," + req.Email + "\n")
 
 	_ = json.NewEncoder(w).Encode(map[string]string{"status": "subscribed"})
+}
+
+// handleOutreachStats returns JSON stats from the outreach_log table.
+// GET /api/v1/outreach/stats — public, read-only.
+func (s *Server) handleOutreachStats(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	setCORSHeaders(w, r)
+
+	if r.Method != http.MethodGet && r.Method != http.MethodOptions {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if s.db == nil || s.db.Conn == nil {
+		_ = json.NewEncoder(w).Encode(map[string]any{"error": "database unavailable"})
+		return
+	}
+
+	total := 0
+	failed := 0
+	unique := 0
+	replies := 0
+	opens := 0
+
+	_ = s.db.Conn.QueryRow("SELECT count(*) FROM outreach_log WHERE status = 'sent'").Scan(&total)
+	_ = s.db.Conn.QueryRow("SELECT count(*) FROM outreach_log WHERE status = 'failed'").Scan(&failed)
+	_ = s.db.Conn.QueryRow("SELECT count(DISTINCT contact_email) FROM outreach_log").Scan(&unique)
+	_ = s.db.Conn.QueryRow("SELECT count(*) FROM outreach_log WHERE replied_at IS NOT NULL").Scan(&replies)
+	_ = s.db.Conn.QueryRow("SELECT count(*) FROM outreach_log WHERE opened_at IS NOT NULL").Scan(&opens)
+
+	// Recent 20 sends for the dashboard table
+	rows, err := s.db.Conn.Query(`
+		SELECT company_name, contact_email, category, status, sent_at
+		FROM outreach_log
+		ORDER BY sent_at DESC
+		LIMIT 20`)
+	if err != nil {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"sent": total, "failed": failed, "unique": unique, "replies": replies, "opens": opens,
+		})
+		return
+	}
+	defer rows.Close()
+
+	type row struct {
+		CompanyName  string    `json:"company_name"`
+		ContactEmail string    `json:"contact_email"`
+		Category     string    `json:"category"`
+		Status       string    `json:"status"`
+		SentAt       time.Time `json:"sent_at"`
+	}
+	recent := []row{}
+	for rows.Next() {
+		var rw row
+		var company, category sql.NullString
+		var sentAt sql.NullTime
+		if err := rows.Scan(&company, &rw.ContactEmail, &category, &rw.Status, &sentAt); err != nil {
+			continue
+		}
+		rw.CompanyName = company.String
+		rw.Category = category.String
+		if sentAt.Valid {
+			rw.SentAt = sentAt.Time
+		}
+		recent = append(recent, rw)
+	}
+
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"sent": total, "failed": failed, "unique": unique, "replies": replies, "opens": opens,
+		"recent": recent,
+	})
+}
+
+// handleOutreachDashboard serves the outreach tracking dashboard HTML.
+// GET /dashboard/outreach — public, read-only.
+func (s *Server) handleOutreachDashboard(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	setCORSHeaders(w, r)
+
+	page, err := os.ReadFile("web/dashboard/outreach.html")
+	if err != nil {
+		// Try absolute path on the production server
+		page, err = os.ReadFile("/opt/marketing_agent/web/dashboard/outreach.html")
+	}
+	if err != nil {
+		http.Error(w, "dashboard not found", http.StatusNotFound)
+		return
+	}
+	_, _ = w.Write(page)
 }
 
 func (s *Server) handleContainerStart(w http.ResponseWriter, r *http.Request) {

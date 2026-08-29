@@ -9,7 +9,7 @@ import (
 )
 
 func TestTelemetryWebSocketEndpoint_Exists(t *testing.T) {
-    server := web.NewServer(nil, nil, nil, nil, nil, nil)
+    server := web.NewServer(nil, nil, nil, nil, nil, nil, nil)
 
     // Test that the endpoint is registered (doesn't 404)
     req, _ := http.NewRequest("GET", "/ws/telemetry", nil)

@@ -29,7 +29,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestHandleGenerateQuote(t *testing.T) {
-	server := NewServer(nil, nil, nil, nil, nil, nil) // Dependencies aren't strictly needed for this endpoint since it just calculates a quote based on URL parameters
+	server := NewServer(nil, nil, nil, nil, nil, nil, nil) // Dependencies aren't strictly needed for this endpoint since it just calculates a quote based on URL parameters
 
 	req, err := http.NewRequest("GET", "/api/v1/quote?company_size=enterprise", nil)
 	if err != nil {
@@ -52,7 +52,7 @@ func TestHandleGenerateQuote(t *testing.T) {
 }
 
 func TestHandleGDPRExport_NoEmail(t *testing.T) {
-	server := NewServer(nil, nil, nil, nil, nil, nil)
+	server := NewServer(nil, nil, nil, nil, nil, nil, nil)
 	req, err := http.NewRequest("GET", "/api/v1/gdpr/export", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -69,7 +69,7 @@ func TestHandleGDPRExport_NoEmail(t *testing.T) {
 }
 
 func TestHandleGDPRDelete_NoEmail(t *testing.T) {
-	server := NewServer(nil, nil, nil, nil, nil, nil)
+	server := NewServer(nil, nil, nil, nil, nil, nil, nil)
 	req, err := http.NewRequest("DELETE", "/api/v1/gdpr/delete", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +86,7 @@ func TestHandleGDPRDelete_NoEmail(t *testing.T) {
 }
 
 func TestHandleDashboard(t *testing.T) {
-	server := NewServer(nil, nil, nil, nil, nil, nil)
+	server := NewServer(nil, nil, nil, nil, nil, nil, nil)
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)

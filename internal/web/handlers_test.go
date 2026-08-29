@@ -8,7 +8,7 @@ import (
 )
 
 func TestWebHandlers_NoDB(t *testing.T) {
-	server := NewServer(nil, nil, nil, nil, nil, nil)
+	server := NewServer(nil, nil, nil, nil, nil, nil, nil)
 
 	t.Run("Dashboard GET nil DB", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/", nil)
